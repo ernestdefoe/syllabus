@@ -2,16 +2,16 @@
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Flarum 2](https://img.shields.io/badge/flarum-2.x-orange.svg)
 
-Teach inside your community. Build a course out of text, video, assignment and quiz lessons, let members enrol and work through it at their own pace, and give everyone who finishes a certificate they can share. Every lesson can have its own discussion, so questions get answered where the rest of your forum can learn from them too.
+Teach inside your community. Build a course out of text, video, assignment and quiz lessons, let members enroll and work through it at their own pace, and give everyone who finishes a certificate they can share. Every lesson can have its own discussion, so questions get answered where the rest of your forum can learn from them too.
 
 ![A course page on the default Flarum theme](screenshots/course.jpg)
 
 ## Features
 
 - **Courses with categories.** Each course has a title, a summary, a description written in your forum's own editor, a cover image, a level, an estimated time and a category. You order the categories by dragging them.
-- **Four kinds of lesson.** **Text**, written in the forum's editor (Markdown, BBCode, Scribe or FoF Rich Text — whatever your posts use). **Video**, from a YouTube or Vimeo address or an uploaded file, with notes underneath. **Assignment**, where students hand in text and files and an instructor passes them or asks for more work. **Quiz**, a [Brainstorm](https://github.com/ernestdefoe/brainstorm) quiz that completes the lesson when it is passed.
+- **Four kinds of lesson.** **Text**, written in the forum's editor (Markdown, BBCode, Scribe or FoF Rich Text — whatever your posts use). **Video**, from a YouTube or Vimeo address or an uploaded file, with notes underneath. **Assignment**, where students submit text and files and an instructor passes them or asks for more work. **Quiz**, a [Brainstorm](https://github.com/ernestdefoe/brainstorm) quiz that completes the lesson when it is passed.
 - **A drag-and-drop outline.** Group lessons into sections and drag both into order. With the keyboard, focus a handle and use the arrow keys.
-- **Enrolment and progress.** Members enrol with one click and mark lessons complete as they go. You can make lessons unlock in order, and let anyone preview the first few. "My courses" shows progress bars and a "Continue" button that goes straight back to the lesson they were on.
+- **Enrollment and progress.** Members enroll with one click and mark lessons complete as they go. You can make lessons unlock in order, and let anyone preview the first few. "My courses" shows progress bars and a "Continue" button that goes straight back to the lesson they were on.
 - **A discussion for every lesson.** Start one automatically when the lesson is published, or link one that already exists. Students see an "Ask about this lesson" box that opens it.
 - **Certificates.** Finishing a course issues a printable certificate — print it or save it as a PDF from the browser — with the member's name, the course, the date and your forum's logo. Each one has a public verification link that anyone can open to check it is genuine.
 - **An instructor panel on the forum.** Instructors manage their own courses, review assignments, see each student's progress and, with Brainstorm, quiz results — without any admin access. They can add co-instructors.
@@ -24,9 +24,9 @@ Teach inside your community. Build a course out of text, video, assignment and q
 
 ## Screenshots
 
-| The catalogue | A lesson with a Brainstorm quiz |
+| The catalog | A lesson with a Brainstorm quiz |
 | --- | --- |
-| ![The course catalogue](screenshots/catalogue.jpg) | ![A quiz lesson](screenshots/lesson-quiz.jpg) |
+| ![The course catalog](screenshots/catalogue.jpg) | ![A quiz lesson](screenshots/lesson-quiz.jpg) |
 
 | Handing in an assignment | Reviewing it in the instructor panel |
 | --- | --- |
@@ -68,16 +68,16 @@ php flarum cache:clear
 
 | Permission | Default | What it allows |
 | --- | --- | --- |
-| View courses | Everyone, guests included | Browse the catalogue, read course pages and any free preview lessons. Take it away from guests to keep courses for members. |
-| Enrol in courses | Members | Enrol, read lessons, hand in assignments and earn certificates. |
+| View courses | Everyone, guests included | Browse the catalog, read course pages and any free preview lessons. Take it away from guests to keep courses for members. |
+| Enroll in courses | Members | Enroll, read lessons, submit assignments and earn certificates. |
 | Create and teach courses | Moderators | The instructor panel: create courses and manage your own (and the ones you were added to as a co-instructor). Give it to an "Instructors" group to let members teach. |
-| Manage all courses | Moderators | Edit, review and delete any course, feature courses on the catalogue, and attach badges. |
+| Manage all courses | Moderators | Edit, review and delete any course, feature courses on the catalog, and attach badges. |
 
 Instructors can only edit their own courses. Reviewing a course's assignments and seeing its students is for that course's instructors and for managers.
 
 ## Paid and members-only courses
 
-Each course is open either to **everyone who may enrol**, or **only to members of the groups you choose**. That second setting is how paid courses work: anything that adds a member to a group when they pay unlocks the course for them, and taking them out of the group locks it again (their progress is kept for if they come back).
+Each course is open either to **everyone who may enroll**, or **only to members of the groups you choose**. That second setting is how paid courses work: anything that adds a member to a group when they pay unlocks the course for them, and taking them out of the group locks it again (their progress is kept in case they come back).
 
 So to sell a course:
 
@@ -91,22 +91,24 @@ Everyone can still see the course page, so it works as the sales page. Set **Fre
 
 With [Brainstorm](https://github.com/ernestdefoe/brainstorm) enabled, the lesson editor offers a **Quiz** lesson. Pick one of the quizzes you can edit in Brainstorm; it shows inside the lesson, ready to play. Passing it — in the lesson or on the quiz's own page — completes the lesson, and in a course that unlocks in order, opens the next one. A quiz passed before enrolling counts too. Instructors see how many of their students passed each quiz in the instructor panel.
 
-Without Brainstorm the Quiz type simply isn't offered. If you switch Brainstorm off later, quiz lessons are hidden and stop counting towards progress until you switch it back on.
+Without Brainstorm the Quiz type simply isn't offered. If you switch Brainstorm off later, quiz lessons are hidden and stop counting toward progress until you switch it back on.
 
 ## Settings
 
 In the admin panel, under Syllabus:
 
+![The Syllabus settings page](screenshots/admin-settings.jpg)
+
 - **Course categories** — add, rename, delete and drag into order.
 - **Show "Courses" in the sidebar.**
 - **Tag for lesson discussions** — where "Ask about this lesson" discussions start, unless a course picks its own. Instructors need permission to start discussions there.
 - **Certificate wording, signature line and logo.** The wording can use `{name}`, `{course}`, `{date}` and `{forum}`. Without a logo address the forum's logo is used.
-- **Uploads** — the largest assignment file, which file types students may hand in, the largest lesson video (0 turns video uploads off and leaves YouTube and Vimeo), and how many assignments a member may hand in per hour.
+- **Uploads** — the largest assignment file, which file types students may submit, the largest lesson video (0 turns video uploads off and leaves YouTube and Vimeo), and how many assignments a member may submit per hour.
 
 ## Uploads and privacy
 
 - Cover images are checked, resized and re-saved as WebP, so only the picture itself is kept.
-- Lesson videos and assignment files are stored outside your public folder and are only ever sent to people allowed to see them: a video to those who can open its lesson, an assignment file to the student who handed it in and the course's instructors. They are always sent as downloads. Web pages, SVG images, scripts and programs are refused whatever the file name says.
+- Lesson videos and assignment files are stored outside your public folder and are only ever sent to people allowed to see them: a video to those who can open its lesson, an assignment file to the student who submitted it and the course's instructors. They are always sent as downloads. Web pages, SVG images, scripts and programs are refused whatever the file name says.
 - YouTube videos play from `youtube-nocookie.com`, Vimeo videos with "do not track".
 - A certificate's verification link contains a long random code. It shows the member's name, the course and the date — nothing else.
 

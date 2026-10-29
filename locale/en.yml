@@ -12,19 +12,19 @@ ernestdefoe-syllabus:
       certificate_logo: Certificate logo address
       certificate_logo_help: An https:// image address. Leave empty to use the forum's logo.
       max_file_mb: Largest assignment file, in MB
-      file_types: File types students may hand in
+      file_types: File types students may submit
       file_types_help: Extensions, separated by commas. Web pages, SVG, scripts and programs are always refused, whatever is listed here.
       max_video_mb: Largest uploaded lesson video, in MB
       max_video_mb_help: MP4, WebM or Ogg. Set to 0 to allow YouTube and Vimeo addresses only. Your server's own upload limit applies too.
       submissions_per_hour: Assignment submissions per member per hour
     permissions:
       view: View courses
-      enrol: Enrol in courses
+      enrol: Enroll in courses
       create: Create and teach courses (instructors)
       manage: Manage all courses
     categories:
       title: Course categories
-      help: Drag categories into the order the catalogue shows them. With the keyboard, focus a handle and use the up and down arrow keys.
+      help: Drag categories into the order the catalog shows them. With the keyboard, focus a handle and use the up and down arrow keys.
       new: New category name
       add: Add
       name: Category name
@@ -84,10 +84,10 @@ ernestdefoe-syllabus:
       completed: Completed
       continue: Continue
       start: Start the course
-      enrol: Enrol
+      enrol: Enroll
       leave: Leave this course
-      leave_confirm: Leave this course? The lessons you've completed are kept if you enrol again.
-      login_to_enrol: Log in to enrol
+      leave_confirm: Leave this course? The lessons you've completed are kept if you enroll again.
+      login_to_enrol: Log in to enroll
       groups_only: "This course is open to {groups}."
       no_access: You don't have access to this course.
       preview_note: "{count, plural, one {The first lesson is} other {The first # lessons are}} free to preview."
@@ -109,8 +109,8 @@ ernestdefoe-syllabus:
       missing: This lesson doesn't exist, or you can't see it.
       edit: Edit lesson
       nav: Lesson navigation
-      locked_login: Log in and enrol to read this lesson.
-      locked_enrol: Enrol in the course to read this lesson.
+      locked_login: Log in and enroll to read this lesson.
+      locked_enrol: Enroll in the course to read this lesson.
       locked_access: You don't have access to this lesson.
       locked_order: Complete the lessons before this one to unlock it.
       see_course: Back to the course
@@ -127,13 +127,13 @@ ernestdefoe-syllabus:
 
     assignment:
       title: Your work
-      enrol_first: Enrol in the course to hand in this assignment.
+      enrol_first: Enroll in the course to submit this assignment.
       text_label: Your answer
       text_placeholder: Write your answer here, attach files, or both.
       attach: Attach files
       limits: "Up to 5 files, {mb} MB each: {types}."
-      submit: Hand in
-      sent: Handed in. Your instructor has been told.
+      submit: Submit
+      sent: Submitted. Your instructor has been notified.
       feedback_from: "Feedback from {name}"
       status:
         pending: Waiting for review
@@ -146,7 +146,7 @@ ernestdefoe-syllabus:
       view: View
       title: Title
       summary: Summary
-      summary_help: One or two sentences for the catalogue card.
+      summary_help: One or two sentences for the course card.
       description: Description
       cover: Cover image
       cover_upload: Upload an image
@@ -161,8 +161,8 @@ ernestdefoe-syllabus:
       minutes: Estimated time, in minutes
       preview: Free preview lessons
       preview_help: How many of the first lessons anyone may read without enrolling.
-      access: Who may enrol
-      access_everyone: Everyone who has permission to enrol
+      access: Who can enroll
+      access_everyone: Everyone who has permission to enroll
       access_groups: Only members of these groups
       access_help: Paid courses work through groups — anything that adds a member to a group when they pay (a subscription extension, for example) unlocks the course for them.
       sequential: Lessons unlock in order
@@ -195,7 +195,7 @@ ernestdefoe-syllabus:
       add_assignment: Assignment
       add_quiz: Quiz
       delete: Delete course
-      delete_confirm: "Delete \"{title}\" with all its lessons, enrolments and submissions? Certificates already awarded stay valid."
+      delete_confirm: "Delete \"{title}\" with all its lessons, enrollments and submissions? Certificates already awarded stay valid."
 
     lesson_editor:
       new_title: New lesson
@@ -227,7 +227,7 @@ ernestdefoe-syllabus:
       discussion_help: Students see an "Ask about this lesson" box that opens it.
       discussion_failed: "The lesson was saved, but its discussion couldn't be started: {reason}"
       delete: Delete lesson
-      delete_confirm: Delete this lesson? Students' progress on it and their submissions go with it. Courses already completed stay completed.
+      delete_confirm: Delete this lesson? Students' progress on it and their submissions are deleted too. Courses already completed stay completed.
 
     teach:
       title: Instructor panel
@@ -252,7 +252,7 @@ ernestdefoe-syllabus:
       feedback: Feedback for the student (optional)
       pass: Pass
       needs_work: Needs work
-      reviewed: Review saved. The student has been told.
+      reviewed: Review saved. The student has been notified.
       student: Student
       progress: Progress
       last_seen: Last studied
@@ -292,12 +292,12 @@ ernestdefoe-syllabus:
       notify_reviewed: Someone reviews my assignment
       notify_completed: I complete a course
       notify_new_lesson: A new lesson is published in a course I'm taking
-      notify_submission: A student hands in an assignment in a course I teach
+      notify_submission: A student submits an assignment in a course I teach
 
     notifications:
       reviewed_passed: "{username} passed your assignment \"{lesson}\""
       reviewed_needs_work: "{username} reviewed your assignment \"{lesson}\": needs work"
-      submission: "{username} handed in \"{lesson}\""
+      submission: "{username} submitted \"{lesson}\""
       new_lesson: "New lesson in {course}"
       completed: "You completed {course} — your certificate is ready"
 
@@ -316,7 +316,7 @@ ernestdefoe-syllabus:
     cover_url: The cover must be an https:// image address.
     groups_required: Choose at least one group, or open the course to everyone.
     not_an_instructor: "{name} can't create courses, so can't teach one."
-    slow_down: That's a lot at once. Please wait a while and try again.
+    slow_down: Too many requests. Please wait a few minutes and try again.
     quiz_needs_brainstorm: Quiz lessons need the Brainstorm extension.
     quiz_required: Choose a quiz.
     quiz_not_yours: You can only use quizzes you can edit.
@@ -325,9 +325,9 @@ ernestdefoe-syllabus:
     upload_failed: The upload didn't arrive. Please try again.
     too_big: "That file is too big. The limit is {mb} MB."
     not_an_image: That isn't a JPEG, PNG, GIF or WebP image.
-    video_off: Video uploads are switched off on this forum.
+    video_off: Video uploads are turned off on this forum.
     video_type: Videos must be MP4, WebM or Ogg.
-    file_type: "That kind of file can't be handed in. Allowed: {types}."
+    file_type: "That type of file can't be submitted. Allowed: {types}."
     too_many_files: "Attach up to {max} files."
     submission_empty: Write an answer or attach a file.
     already_waiting: Your last submission is still waiting for review.
@@ -344,8 +344,8 @@ ernestdefoe-syllabus:
       passed: "{reviewer} passed your assignment **{lesson}** in {course}. {url}"
       needs_work: "{reviewer} reviewed your assignment **{lesson}** in {course} and asked for more work. {url}"
     submission:
-      subject: "{student} handed in \"{lesson}\""
-      body: "{student} handed in **{lesson}** in {course}. Review it in the instructor panel: {url}"
+      subject: "{student} submitted \"{lesson}\""
+      body: "{student} submitted **{lesson}** in {course}. Review it in the instructor panel: {url}"
     new_lesson:
       subject: "New lesson in {course}"
       body: "A new lesson, **{lesson}**, is ready in {course}: {url}"

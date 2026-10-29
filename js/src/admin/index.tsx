@@ -9,7 +9,7 @@ import CategoriesSetting from './CategoriesSetting';
  * panel, where instructors need no admin access.
  */
 app.initializers.add('ernestdefoe-syllabus', () => {
-  const t = (key: string) => app.translator.trans(`ernestdefoe-syllabus.admin.${key}`);
+  const t = (key: string, params: Record<string, string> = {}) => app.translator.trans(`ernestdefoe-syllabus.admin.${key}`, params);
   const key = (name: string) => `ernestdefoe-syllabus.${name}`;
 
   app.registry
@@ -35,7 +35,7 @@ app.initializers.add('ernestdefoe-syllabus', () => {
       setting: key('certificate_text'),
       type: 'textarea',
       label: t('settings.certificate_text'),
-      help: t('settings.certificate_text_help'),
+      help: t('settings.certificate_text_help', { name: '{name}', course: '{course}', date: '{date}', forum: '{forum}' }),
     })
     .registerSetting({
       setting: key('certificate_signature'),
