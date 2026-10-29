@@ -13,26 +13,42 @@ class QueryCountTest extends SyllabusTestCase
         return ['flarum-mentions', 'ernestdefoe-syllabus'];
     }
 
+    /** @var list<string> */
+    private array $log = [];
+
+    private bool $listening = false;
+
     private function queries(string $path, array $query = [], int $actor = 2): int
     {
-        $queries = 0;
-        $this->database()->listen(function () use (&$queries) {
-            $queries++;
+        $this->log = [];
+        $this->listening || $this->database()->listen(function ($event) {
+            // Core refreshes a member's "last seen" once in a while, on
+            // whichever request happens to come due: not this page's cost.
+            if (! preg_match('/^update .*users.* set .*last_seen_at/i', $event->sql)) {
+                $this->log[] = $event->sql;
+            }
         });
+        $this->listening = true;
         $request = $this->request('GET', $path, ['authenticatedAs' => $actor])->withQueryParams($query);
         $this->send($request); // warm
-        $queries = 0;
+        $this->log = [];
         $response = $this->send($request);
         $this->assertSame(200, $response->getStatusCode(), (string) $response->getBody());
 
-        return $queries;
+        return count($this->log);
+    }
+
+    private function assertQueries(int $expected, string $path, array $query = [], int $actor = 2): void
+    {
+        $this->assertSame($expected, $this->queries($path, $query, $actor), $path."\n".implode("\n", $this->log));
     }
 
     #[Test]
     public function the_catalogue_and_my_courses_do_not_grow_with_the_course_count(): void
     {
-        $this->json('POST', '/api/syllabus/categories', 1, ['data' => ['name' => 'Cooking']]);
-        $first = $this->course(['description' => 'Thanks @"normal"#2', 'categoryId' => 1], 4);
+        [, $cats] = $this->json('POST', '/api/syllabus/categories', 1, ['data' => ['name' => 'Cooking']]);
+        $category = $cats['data'][0]['id'];
+        $first = $this->course(['description' => 'Thanks @"normal"#2', 'categoryId' => $category], 4);
         $this->lesson($first['id'], [], 4);
         $this->enrol($first['id']);
 
@@ -41,14 +57,14 @@ class QueryCountTest extends SyllabusTestCase
         $teachOne = $this->queries('/api/syllabus/teaching', [], 4);
 
         for ($i = 0; $i < 6; $i++) {
-            $course = $this->course(['title' => "Course $i", 'categoryId' => 1, 'description' => "Hi @\"admin\"#1 $i"], $i % 2 ? 4 : 5);
+            $course = $this->course(['title' => "Course $i", 'categoryId' => $category, 'description' => "Hi @\"admin\"#1 $i"], $i % 2 ? 4 : 5);
             $this->lesson($course['id'], [], $i % 2 ? 4 : 5);
             $this->enrol($course['id']);
         }
 
-        $this->assertSame($one, $this->queries('/api/syllabus/courses'));
-        $this->assertSame($mineOne, $this->queries('/api/syllabus/courses', ['filter' => ['mine' => '1']]));
-        $this->assertSame($teachOne, $this->queries('/api/syllabus/teaching', [], 4));
+        $this->assertQueries($one, '/api/syllabus/courses');
+        $this->assertQueries($mineOne, '/api/syllabus/courses', ['filter' => ['mine' => '1']]);
+        $this->assertQueries($teachOne, '/api/syllabus/teaching', [], 4);
     }
 
     #[Test]
@@ -68,7 +84,7 @@ class QueryCountTest extends SyllabusTestCase
         }
         $this->json('PATCH', '/api/syllabus/courses/'.$course['id'].'/outline', 1, ['data' => ['items' => [['kind' => 'section', 'title' => 'Part one']]]]);
 
-        $this->assertSame($one, $this->queries('/api/syllabus/courses/'.$course['id']));
-        $this->assertSame($lessonOne, $this->queries('/api/syllabus/lessons/'.$first['id']));
+        $this->assertQueries($one, '/api/syllabus/courses/'.$course['id']);
+        $this->assertQueries($lessonOne, '/api/syllabus/lessons/'.$first['id']);
     }
 }
