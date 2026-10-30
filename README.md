@@ -15,7 +15,7 @@ Teach inside your community. Build a course out of text, video, assignment and q
 - **A discussion for every lesson.** Start one automatically when the lesson is published, or link one that already exists. Students see an "Ask about this lesson" box that opens it.
 - **Certificates.** Finishing a course issues a printable certificate — print it or save it as a PDF from the browser — with the member's name, the course, the date and your forum's logo. Each one has a public verification link that anyone can open to check it is genuine.
 - **An instructor panel on the forum.** Instructors manage their own courses, review assignments, see each student's progress and, with Brainstorm, quiz results — without any admin access. They can add co-instructors.
-- **Paid and members-only courses** through groups (see below).
+- **Paid and members-only courses** through groups, or sold directly with Kiosk (see below).
 - **Notifications** in the bell and by email, each one something members can turn off: an assignment was reviewed, a new lesson is out, a course is complete, and (for instructors) a student handed something in.
 - **A profile tab** listing what a member is taking and has completed, unless they choose to keep it private.
 - **A widget** — "Continue learning" for members, "Featured courses" for everyone else — for [Bespoke](https://ernestdefoe.online) and [FoF Forum Widgets](https://github.com/FriendsOfFlarum/forum-widgets-core). In FoF Forum Widgets, drag it into a section of the layout editor; it shows nowhere until you do.
@@ -86,6 +86,10 @@ So to sell a course:
 3. In the course's settings, choose **Only members of these groups** and tick "Bakery Club".
 
 Everyone can still see the course page, so it works as the sales page. Set **Free preview lessons** to let people try the first lesson or two before they buy.
+
+### Selling with Kiosk
+
+With **Kiosk** (a store extension, coming soon) you can sell a course directly: create a Kiosk product, add the course to it and give it a price. The course switches to **People who buy it**, people who haven't bought it see the product and a Buy button above the lessons, and buying enrolls them. If their access ends later, they keep their progress and certificate, and the lessons lock again until they buy it again. Without Kiosk, a course set to **People who buy it** stays locked.
 
 ## Brainstorm quizzes
 
