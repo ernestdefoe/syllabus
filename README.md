@@ -89,7 +89,7 @@ Everyone can still see the course page, so it works as the sales page. Set **Fre
 
 ### Selling with Kiosk
 
-With **Kiosk** (a store extension, coming soon) you can sell a course directly: create a Kiosk product, add the course to it and give it a price. The course switches to **People who buy it**, people who haven't bought it see the product and a Buy button above the lessons, and buying enrolls them. If their access ends later, they keep their progress and certificate, and the lessons lock again until they buy it again. Without Kiosk, a course set to **People who buy it** stays locked.
+With [Kiosk](https://github.com/ernestdefoe/kiosk) (`composer require ernestdefoe/kiosk`) you can sell a course directly: create a Kiosk product, add the course to it and give it a price. The course switches to **People who buy it**, people who haven't bought it see the product and a Buy button above the lessons, and buying enrolls them. If their access ends later, they keep their progress and certificate, and the lessons lock again until they buy it again. Without Kiosk, a course set to **People who buy it** stays locked.
 
 ## Brainstorm quizzes
 
