@@ -64,15 +64,19 @@ class Access
     }
 
     /**
-     * The course's access rule: everyone who may enrol, or only members of the
-     * chosen groups — which is how paid courses work. Anything that adds a
-     * member to a group on payment unlocks the course; removing them locks it
-     * again.
+     * The course's access rule: everyone who may enrol, only members of the
+     * chosen groups, or (with Kiosk) only people who bought it. Anything that
+     * adds a member to a group on payment unlocks a groups course; removing
+     * them locks it again.
      */
     public static function meetsRule(User $actor, Course $course): bool
     {
         if ($actor->isGuest() || ! $actor->hasPermission('syllabus.enrol')) {
             return false;
+        }
+
+        if ($course->access === 'paid') {
+            return self::bought($actor, $course);
         }
 
         if ($course->access !== 'groups') {
@@ -84,6 +88,19 @@ class Access
             : $course->groups()->pluck('groups.id')->all();
 
         return (bool) array_intersect(array_map('intval', $allowed), array_map('intval', $actor->permissionGroupIds()));
+    }
+
+    /**
+     * Whether Kiosk says this member holds the course right now. Fails closed:
+     * with Kiosk switched off, a paid course stays locked rather than opening.
+     */
+    public static function bought(User $actor, Course $course): bool
+    {
+        if (! class_exists(\Ernestdefoe\Kiosk\Service\Access::class) || ! resolve(\Flarum\Extension\ExtensionManager::class)->isEnabled('ernestdefoe-kiosk')) {
+            return false;
+        }
+
+        return resolve(\Ernestdefoe\Kiosk\Service\Access::class)->has($actor, 'syllabus-course', $course->id);
     }
 
     public static function canEnrol(User $actor, Course $course): bool

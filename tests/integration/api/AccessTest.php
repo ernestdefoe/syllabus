@@ -104,6 +104,21 @@ class AccessTest extends SyllabusTestCase
     }
 
     #[Test]
+    public function a_paid_course_stays_locked_without_kiosk(): void
+    {
+        // Kiosk isn't enabled here: "paid" must fail closed, never open.
+        $course = $this->course(['access' => 'paid']);
+        $this->assertSame('paid', $course['access']);
+        $this->lesson($course['id']);
+
+        [, $show] = $this->json('GET', '/api/syllabus/courses/'.$course['id'], 2);
+        $this->assertFalse($show['data']['canEnrol']);
+        $this->assertSame('access', $show['data']['outline'][0]['locked']);
+        [$status] = $this->json('POST', '/api/syllabus/courses/'.$course['id'].'/enrolment', 2);
+        $this->assertSame(403, $status);
+    }
+
+    #[Test]
     public function drafts_are_invisible_to_members(): void
     {
         $draft = $this->course(['status' => 'draft']);

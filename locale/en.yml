@@ -1,4 +1,7 @@
 ernestdefoe-syllabus:
+  lib:
+    kiosk:
+      course: Course
   admin:
     settings:
       show_nav: Show "Courses" in the forum's sidebar
@@ -90,6 +93,7 @@ ernestdefoe-syllabus:
       login_to_enrol: Log in to enroll
       groups_only: "This course is open to {groups}."
       no_access: You don't have access to this course.
+      paid_only: This course is for people who buy it.
       preview_note: "{count, plural, one {The first lesson is} other {The first # lessons are}} free to preview."
       sequential: Lessons unlock in order
       instructors: Instructors
@@ -164,6 +168,7 @@ ernestdefoe-syllabus:
       access: Who can enroll
       access_everyone: Everyone who has permission to enroll
       access_groups: Only members of these groups
+      access_paid: People who buy it (sell it from Kiosk)
       access_help: Paid courses work through groups — anything that adds a member to a group when they pay (a subscription extension, for example) unlocks the course for them.
       sequential: Lessons unlock in order
       notify_new_lessons: Tell students when a new lesson is published

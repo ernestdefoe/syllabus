@@ -88,7 +88,7 @@ class CourseSaver
         }
 
         if ($has('access')) {
-            $course->access = $data['access'] === 'groups' ? 'groups' : 'everyone';
+            $course->access = in_array($data['access'], ['groups', 'paid'], true) ? $data['access'] : 'everyone';
         }
 
         if ($has('previewLessons')) {

@@ -71,6 +71,7 @@ export default class CoursePage extends Page {
       <PageStructure className="SyllabusCoursePage" hero={() => this.hero(course)} sidebar={() => this.sidebar(course)}>
         {course.descriptionHtml ? <div className="SyllabusProse Post-body">{m.trust(course.descriptionHtml)}</div> : null}
         <h3 className="SyllabusHeading">{t('course.outline')}</h3>
+        {this.offer(course)}
         {course.outline.length ? <OutlineList course={course} items={course.outline} /> : <p className="SyllabusEmpty">{t('course.no_lessons')}</p>}
       </PageStructure>
     );
@@ -92,6 +93,25 @@ export default class CoursePage extends Page {
         </div>
       </header>
     );
+  }
+
+  /**
+   * A paid course the member doesn't hold: Kiosk's offer, drawn by Kiosk's own
+   * component so every Buy button on the forum is the same. Nothing at all
+   * without Kiosk (the course then simply stays locked).
+   */
+  offer(course: Course): Mithril.Children {
+    if (course.access !== 'paid' || course.meetsRule || !app.session.user) return null;
+
+    let LockedNotice: any = null;
+    try {
+      const mod = (window as any).flarum?.reg?.get('ernestdefoe-kiosk', 'forum/components/LockedNotice');
+      LockedNotice = mod?.default || mod;
+    } catch {
+      LockedNotice = null;
+    }
+
+    return LockedNotice ? <LockedNotice type="syllabus-course" id={course.id} name={course.title} /> : null;
   }
 
   sidebar(course: Course): Mithril.Children {
@@ -139,7 +159,11 @@ export default class CoursePage extends Page {
           ) : (
             <p className="SyllabusSide-note">
               <Icon name="fas fa-lock" />{' '}
-              {course.groups.length ? t('course.groups_only', { groups: course.groups.map((g) => g.name).join(', ') }) : t('course.no_access')}
+              {course.access === 'paid'
+                ? t('course.paid_only')
+                : course.groups.length
+                  ? t('course.groups_only', { groups: course.groups.map((g) => g.name).join(', ') })
+                  : t('course.no_access')}
             </p>
           )}
           {!me && course.previewLessons ? <p className="SyllabusSide-note">{t('course.preview_note', { count: course.previewLessons })}</p> : null}

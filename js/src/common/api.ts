@@ -30,7 +30,7 @@ export interface CourseCard {
   estimatedMinutes: number | null;
   status: 'draft' | 'published';
   featured: boolean;
-  access: 'everyone' | 'groups';
+  access: 'everyone' | 'groups' | 'paid';
   category: { id: number; name: string; slug: string } | null;
   instructor: Person | null;
   lessonCount: number;
@@ -80,7 +80,7 @@ export interface EditableCourse {
   difficulty: string | null;
   estimatedMinutes: number | null;
   status: 'draft' | 'published';
-  access: 'everyone' | 'groups';
+  access: 'everyone' | 'groups' | 'paid';
   groupIds: number[];
   previewLessons: number;
   sequential: boolean;
@@ -179,6 +179,7 @@ export interface EditorMeta {
   canFeature: boolean;
   canBadge: boolean;
   quizzesEnabled: boolean;
+  kiosk: boolean;
   quizzes: { id: number; title: string; status: string }[];
   maxVideoMb: number;
 }

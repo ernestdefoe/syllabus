@@ -27,7 +27,7 @@ const blank = (): EditableCourse => ({
   difficulty: null,
   estimatedMinutes: null,
   status: 'draft',
-  access: 'everyone',
+  access: 'everyone' as 'everyone' | 'groups' | 'paid',
   groupIds: [],
   previewLessons: 0,
   sequential: false,
@@ -246,7 +246,7 @@ export default class CourseEditorPage extends Page {
 
           <fieldset className="SyllabusFieldset">
             <legend>{t('editor.access')}</legend>
-            {(['everyone', 'groups'] as const).map((value) => (
+            {(meta.kiosk || f.access === 'paid' ? (['everyone', 'groups', 'paid'] as const) : (['everyone', 'groups'] as const)).map((value) => (
               <label className="checkbox">
                 <input type="radio" name="syl-access" checked={f.access === value} onchange={() => (f.access = value)} />
                 {t('editor.access_' + value)}

@@ -11,5 +11,11 @@ parameters:
     paths:
         - extend.php
         - src
+    # Kiosk is optional and not a dev dependency yet (unreleased): the classes
+    # that only load when it is enabled are left out until it is on Packagist.
+    excludePaths:
+        - src/Kiosk
+    ignoreErrors:
+        - '#Ernestdefoe\\Kiosk\\#'
     databaseMigrationsPath:
         - migrations

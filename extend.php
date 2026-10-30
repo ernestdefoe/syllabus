@@ -134,6 +134,10 @@ return [
         ]),
 
     (new Extend\Conditional())
+        // Sell courses through Kiosk; see Kiosk\CourseUnlock.
+        ->whenExtensionEnabled('ernestdefoe-kiosk', fn () => [
+            new \Ernestdefoe\Kiosk\Extend\UnlockType('syllabus-course', \Ernestdefoe\Syllabus\Kiosk\CourseUnlock::class),
+        ])
         ->whenExtensionEnabled('ernestdefoe-brainstorm', fn () => [
             (new Extend\Event())->listen(\ErnestDefoe\Brainstorm\Event\AttemptFinished::class, CompleteQuizLessons::class),
         ]),
