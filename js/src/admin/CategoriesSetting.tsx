@@ -40,34 +40,7 @@ export default class CategoriesSetting extends Component {
           <LoadingIndicator />
         ) : (
           <ol className="SyllabusCategories-list" data-sortable>
-            {this.list.map((cat, index) => (
-              <li key={cat.id} className={'SyllabusCategories-row' + (this.sorter.dragging === index ? ' is-dragging' : '')}>
-                <span className="SyllabusCategories-handle" {...this.sorter.handle(index)} aria-label={extractText(t('move', { name: cat.name }))}>
-                  <Icon name="fas fa-grip-vertical" />
-                </span>
-                <input
-                  className="FormControl"
-                  value={cat.name}
-                  maxlength={100}
-                  aria-label={extractText(t('name'))}
-                  oninput={(e: InputEvent) => (cat.name = (e.target as HTMLInputElement).value)}
-                  onchange={() => saveCategory({ name: cat.name }, cat.id)}
-                />
-                <span className="helpText">{t('courses', { count: cat.courseCount })}</span>
-                <Button
-                  className="Button Button--icon Button--link"
-                  icon="fas fa-trash"
-                  aria-label={extractText(t('delete'))}
-                  onclick={() => {
-                    if (!confirm(extractText(t('delete_confirm', { name: cat.name })))) return;
-                    deleteCategory(cat.id).then(() => {
-                      this.list = (this.list || []).filter((c) => c.id !== cat.id);
-                      m.redraw();
-                    });
-                  }}
-                />
-              </li>
-            ))}
+            {this.list.map((cat, index) => this.row(cat, index))}
           </ol>
         )}
         <div className="SyllabusCategories-add">
@@ -78,7 +51,13 @@ export default class CategoriesSetting extends Component {
             aria-label={extractText(t('new'))}
             value={this.name}
             oninput={(e: InputEvent) => (this.name = (e.target as HTMLInputElement).value)}
-            onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && (e.preventDefault(), this.add())}
+            onkeydown={(e: KeyboardEvent) => {
+              // A block, not `e.key === 'Enter' && …`: Mithril treats a handler returning false as
+              // preventDefault, which swallowed every other key and left the field untypeable.
+              if (e.key !== 'Enter') return;
+              e.preventDefault();
+              this.add();
+            }}
           />
           <Button className="Button" icon="fas fa-plus" loading={this.busy} disabled={!this.name.trim()} onclick={() => this.add()}>
             {t('add')}
@@ -86,6 +65,39 @@ export default class CategoriesSetting extends Component {
         </div>
       </div>
     );
+  }
+
+  row(cat: Category, index: number): Mithril.Children {
+    return (
+      <li key={cat.id} className={'SyllabusCategories-row' + (this.sorter.dragging === index ? ' is-dragging' : '')}>
+        <span className="SyllabusCategories-handle" {...this.sorter.handle(index)} aria-label={extractText(t('move', { name: cat.name }))}>
+          <Icon name="fas fa-grip-vertical" />
+        </span>
+        <input
+          className="FormControl"
+          value={cat.name}
+          maxlength={100}
+          aria-label={extractText(t('name'))}
+          oninput={(e: InputEvent) => (cat.name = (e.target as HTMLInputElement).value)}
+          onchange={() => saveCategory({ name: cat.name }, cat.id)}
+        />
+        <span className="helpText">{t('courses', { count: cat.courseCount })}</span>
+        <Button
+          className="Button Button--icon Button--link"
+          icon="fas fa-trash"
+          aria-label={extractText(t('delete'))}
+          onclick={() => this.remove(cat)}
+        />
+      </li>
+    );
+  }
+
+  remove(cat: Category) {
+    if (!confirm(extractText(t('delete_confirm', { name: cat.name })))) return;
+    deleteCategory(cat.id).then(() => {
+      this.list = (this.list || []).filter((c) => c.id !== cat.id);
+      m.redraw();
+    });
   }
 
   add() {
