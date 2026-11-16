@@ -37,7 +37,8 @@
     "suggest": {
         "ernestdefoe/brainstorm": "Quiz lessons: embed a Brainstorm quiz in a course and make passing it unlock the next lesson.",
         "fof/badges": "Award a badge when a member completes a course.",
-        "flarum/tags": "Put each lesson's discussion in a tag of your choice."
+        "flarum/tags": "Put each lesson's discussion in a tag of your choice.",
+        "ernestdefoe/kiosk": "Sell a course: members who buy a Kiosk product get into it."
     },
     "autoload": {
         "psr-4": {
@@ -61,7 +62,8 @@
             "optional-dependencies": [
                 "ernestdefoe/brainstorm",
                 "fof/badges",
-                "flarum/tags"
+                "flarum/tags",
+                "ernestdefoe/kiosk"
             ]
         }
     },
