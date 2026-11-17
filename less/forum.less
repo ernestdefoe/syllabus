@@ -272,6 +272,21 @@
   .container {
     position: relative;
   }
+  // Keep the side gutter core gives .container (15px). Themes may zero it for their own heroes
+  // (Bespoke's `.Hero .container { padding: 8px 0 }`), which put the title and summary flush
+  // against the screen edges on a phone. Three classes outrank that rule; a theme can still
+  // tune the gutter through --syllabus-hero-gutter.
+  &.Hero > .container {
+    padding-left: var(--syllabus-hero-gutter, 15px);
+    padding-right: var(--syllabus-hero-gutter, 15px);
+  }
+  .containerNarrow {
+    min-width: 0;
+  }
+  .Hero-title,
+  .Hero-subtitle {
+    overflow-wrap: anywhere;
+  }
 }
 
 .SyllabusSide {
