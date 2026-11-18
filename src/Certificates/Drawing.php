@@ -123,6 +123,7 @@ class Drawing
             'verify' => $t('verify_at').' '.$this->url->to('forum')->route('syllabus.certificate', ['code' => $code]),
             'seal1' => $t('seal_line1'),
             'seal2' => $t('seal_line2'),
+            'unsupported' => $t('unsupported_text'),
         ];
     }
 }

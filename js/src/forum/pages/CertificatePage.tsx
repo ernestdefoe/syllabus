@@ -102,6 +102,13 @@ export default class CertificatePage extends Page {
           ) : null}
         </div>
         <article className="SyllabusCertificate">{this.image(cert)}</article>
+        {cert.drawnInFull ? null : (
+          <p className="helpText SyllabusCertificate-note">
+            {t('certificate.drawn_partly', {
+              text: extractText(t('certificate.verified_text', { name: cert.userName, course: cert.courseTitle, date: this.date(cert) })),
+            })}
+          </p>
+        )}
       </div>
     );
   }

@@ -17,12 +17,14 @@ use GdImage;
 class Renderer
 {
     /** Bump when a template changes, so cached drawings are redrawn. */
-    public const VERSION = 1;
+    public const VERSION = 2;
     public const WIDTH = 2400;
     public const HEIGHT = 1697;
 
     private GdImage $im;
     private float $s = 1.0;
+    /** The text column's width in left-aligned templates: right-to-left lines align to its right edge. */
+    private float $col = 0;
 
     /**
      * @param array{template: string, signerName: string, signerTitle: string} $design
@@ -36,6 +38,24 @@ class Renderer
         $this->im = imagecreatetruecolor($width, (int) round(self::HEIGHT * $this->s));
         imagealphablending($this->im, true);
         imageantialias($this->im, true);
+
+        // Text in a script we can't draw correctly yet is replaced by a pointer to the
+        // verification page, which shows it as text, rather than by empty boxes.
+        foreach ($words as $key => $value) {
+            if (Shaper::unsupported((string) $value)) {
+                $words[$key] = $words['unsupported'] ?? '';
+            }
+        }
+        foreach (['signerName', 'signerTitle'] as $key) {
+            if (Shaper::unsupported($design[$key])) {
+                $design[$key] = $key === 'signerName' ? ($words['unsupported'] ?? '') : '';
+            }
+        }
+        $this->col = match ($design['template']) {
+            'modern' => 1650,
+            'academic' => 1480,
+            default => 0,
+        };
 
         $background = $this->load($images['background'] ?? null);
         match ($design['template']) {
@@ -220,7 +240,7 @@ class Renderer
         return $image;
     }
 
-    private function text(string $text, string $font, float $size, float $x, float $y, string $color, string $align): void
+    private function text(string $text, string $font, float $size, float $x, float $y, string $color, string $align, ?float $box = null): void
     {
         if ($text === '') {
             return;
@@ -228,12 +248,17 @@ class Renderer
         $file = $this->font($text, $font);
         $pt = $this->pt($size);
         $width = $this->width($text, $file, $pt);
+        // A right-to-left line in a left-aligned column starts at the column's right edge.
+        $box ??= $this->col;
+        if ($align === 'left' && $box > 0 && Shaper::isRtl($text)) {
+            [$align, $x] = ['right', $x + $box];
+        }
         $left = match ($align) {
             'center' => $this->px($x) - $width / 2,
             'right' => $this->px($x) - $width,
             default => $this->px($x),
         };
-        imagettftext($this->im, $pt, 0, (int) round($left), $this->px($y), $this->color($color), $file, $text);
+        imagettftext($this->im, $pt, 0, (int) round($left), $this->px($y), $this->color($color), $file, Shaper::visual($text));
     }
 
     /** One line, shrunk until it fits the width. */
@@ -243,7 +268,7 @@ class Renderer
         while ($size > $min && $this->width($text, $file, $this->pt($size)) > $this->px($maxWidth)) {
             $size -= 2;
         }
-        $this->text($this->clip($text, $file, $this->pt($size), $this->px($maxWidth)), $font, $size, $x, $y, $color, $align);
+        $this->text($this->clip($text, $file, $this->pt($size), $this->px($maxWidth)), $font, $size, $x, $y, $color, $align, $maxWidth);
     }
 
     /** Wrapped text, at most $max lines (the last ends in "…"); returns the last baseline. */
@@ -273,7 +298,7 @@ class Renderer
             $lines[$max - 1] = $this->clip($lines[$max - 1].'…', $file, $pt, $limit, true);
         }
         foreach ($lines as $i => $one) {
-            $this->text($this->clip($one, $file, $pt, $limit), $font, $size, $x, $y + $i * $lineHeight, $color, $align);
+            $this->text($this->clip($one, $file, $pt, $limit), $font, $size, $x, $y + $i * $lineHeight, $color, $align, $maxWidth);
         }
 
         return $y + (count($lines) - 1) * $lineHeight;
@@ -301,6 +326,12 @@ class Renderer
     /** Letter-spaced capitals, for kickers. */
     private function spaced(string $text, string $font, float $size, float $x, float $y, string $color, float $tracking, string $align): void
     {
+        if (Shaper::visual($text) !== $text) {
+            // Letter spacing would break joined letters apart: a plain line instead.
+            $this->text($text, $font, $size, $x, $y, $color, $align);
+
+            return;
+        }
         $file = $this->font($text, $font);
         $pt = $this->pt($size);
         $gap = $this->px($tracking);
@@ -318,6 +349,14 @@ class Renderer
     private function rotated(string $text, string $font, float $size, float $x, float $y, string $color, float $tracking, float $maxLength): void
     {
         $file = $this->font($text, $font);
+        if (Shaper::visual($text) !== $text) {
+            while ($size > 20 && $this->width($text, $file, $this->pt($size)) > $this->px($maxLength)) {
+                $size -= 2;
+            }
+            imagettftext($this->im, $this->pt($size), 90, $this->px($x), $this->px($y), $this->color($color), $file, Shaper::visual($text));
+
+            return;
+        }
         $chars = mb_str_split($text);
         do {
             $pt = $this->pt($size);
@@ -406,7 +445,7 @@ class Renderer
 
     private function width(string $text, string $file, float $pt): float
     {
-        $box = imagettfbbox($pt, 0, $file, $text);
+        $box = imagettfbbox($pt, 0, $file, Shaper::visual($text));
 
         return $box ? (float) (max($box[2], $box[4]) - min($box[0], $box[6])) : 0.0;
     }

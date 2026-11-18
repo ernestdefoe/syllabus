@@ -3,6 +3,8 @@
 namespace Ernestdefoe\Syllabus\Tests\integration\api;
 
 use Ernestdefoe\Syllabus\Certificates\Design;
+use Ernestdefoe\Syllabus\Certificates\Renderer;
+use Ernestdefoe\Syllabus\Certificates\Shaper;
 use Ernestdefoe\Syllabus\Course;
 use Ernestdefoe\Syllabus\Tests\integration\SyllabusTestCase;
 use PHPUnit\Framework\Attributes\Test;
@@ -160,6 +162,60 @@ class CertificateDesignTest extends SyllabusTestCase
         $this->assertCount(1, $this->disk()->files('rendered/'.$code));
 
         $this->assertSame(404, $this->image(str_repeat('a', 32))->getStatusCode());
+    }
+
+    #[Test]
+    public function arabic_script_is_joined_and_right_to_left_text_is_put_in_visual_order(): void
+    {
+        $hex = fn (string $s) => array_map(fn ($c) => sprintf('%04X', mb_ord($c)), mb_str_split($s));
+
+        // سلام: seen initial, lam-alef ligature (final, joined to seen), meem isolated; drawn right to left.
+        $this->assertSame(['FEE1', 'FEFC', 'FEB3'], $hex(Shaper::visual('سلام')));
+        // Persian letters and a ZWNJ: "می‌روم" keeps meem+yeh joined, then breaks before reh.
+        $this->assertSame(['FEE1', 'FEED', 'FEAD', 'FBFD', 'FEE3'], $hex(Shaper::visual('می‌روم')));
+        // Hebrew is reversed; no shaping.
+        $this->assertSame('ןהכ דוד', Shaper::visual('דוד כהן'));
+        // Latin words and digits inside right-to-left text stay left to right.
+        $this->assertStringContainsString('PHP', Shaper::visual('دوره PHP مقدماتی'));
+        $this->assertStringContainsString('2026', Shaper::visual('سال 2026'));
+        // Latin text is untouched.
+        $this->assertSame('JavaScript, Beginner', Shaper::visual('JavaScript, Beginner'));
+
+        $this->assertTrue(Shaper::isRtl('محمد رضایی'));
+        $this->assertTrue(Shaper::isRtl('דוד כהן'));
+        $this->assertFalse(Shaper::isRtl('Sara احمدی'));
+
+        // Scripts the certificate can't draw yet are reported, not drawn as boxes.
+        foreach (['王小明', 'สมชาย ใจดี', 'राहुल शर्मा', '김민준', 'さくら'] as $text) {
+            $this->assertTrue(Shaper::unsupported($text), $text);
+        }
+        foreach (['محمد رضایی', 'דוד כהן', 'Zoë Ångström', 'Дмитрий'] as $text) {
+            $this->assertFalse(Shaper::unsupported($text), $text);
+        }
+    }
+
+    #[Test]
+    public function certificates_in_every_sample_script_render_and_say_when_text_could_not_be_drawn(): void
+    {
+        $renderer = new Renderer();
+        $words = ['kicker' => 'Certificate of completion', 'presented' => 'This certifies that', 'completed' => 'has completed the course',
+            'text' => '', 'date' => 'November 18, 2026', 'dateLabel' => 'Date', 'issuedBy' => 'Issued by', 'verify' => 'Verify', 'seal1' => 'Course', 'seal2' => 'Certificate', 'unsupported' => '(shown on the verification page)'];
+        $samples = ['محمد رضایی' => 'آموزش برنامه‌نویسی', 'فاطمة الزهراء' => 'مقدمة في البرمجة', 'عائشہ خان' => 'پروگرامنگ کا تعارف', 'דוד כהן' => 'מבוא לתכנות', '王小明' => '编程入门', 'สมชาย ใจดี' => 'การเขียนโปรแกรม'];
+        foreach (Design::TEMPLATES as $template) {
+            foreach ($samples as $name => $course) {
+                $jpeg = $renderer->render(['template' => $template, 'signerName' => $name, 'signerTitle' => ''], [], $words + ['name' => $name, 'course' => $course], 600);
+                $this->assertSame([600, 424], array_slice(getimagesizefromstring($jpeg) ?: [], 0, 2), "$template $name");
+            }
+        }
+
+        // The certificate page is told when the drawing had to leave a name out.
+        $course = $this->course(['title' => '编程入门']);
+        $lesson = $this->lesson($course['id']);
+        $this->enrol($course['id']);
+        $this->complete($lesson['id']);
+        $code = (string) $this->database()->table('syllabus_certificates')->value('code');
+        [, $body] = $this->json('GET', '/api/syllabus/certificates/'.$code, null);
+        $this->assertFalse($body['data']['drawnInFull']);
     }
 
     private function image(string $code): ResponseInterface

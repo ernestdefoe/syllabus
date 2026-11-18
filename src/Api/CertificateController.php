@@ -4,6 +4,7 @@ namespace Ernestdefoe\Syllabus\Api;
 
 use Ernestdefoe\Syllabus\Certificate;
 use Ernestdefoe\Syllabus\Certificates\Drawing;
+use Ernestdefoe\Syllabus\Certificates\Shaper;
 use Ernestdefoe\Syllabus\Course;
 use Flarum\Http\RequestUtil;
 use Flarum\Http\UrlGenerator;
@@ -44,6 +45,8 @@ class CertificateController implements RequestHandlerInterface
             'course' => $course ? ['id' => $course->id, 'slug' => $course->slug] : null,
             'isOwner' => ! $actor->isGuest() && $actor->id === $certificate->user_id,
             'imageUrl' => $this->drawing->url($certificate),
+            // False when the name or course is in a script the drawing can't show yet.
+            'drawnInFull' => ! Shaper::unsupported($certificate->user_name.' '.$certificate->course_title),
             'verifyUrl' => $this->url->to('forum')->route('syllabus.certificate', ['code' => $certificate->code]),
         ]]);
     }

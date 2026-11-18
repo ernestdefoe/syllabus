@@ -214,6 +214,7 @@ export interface Certificate {
   course: { id: number; slug: string } | null;
   isOwner: boolean;
   imageUrl: string;
+  drawnInFull: boolean;
   verifyUrl: string;
 }
 
