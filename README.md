@@ -13,7 +13,7 @@ Teach inside your community. Build a course out of text, video, assignment and q
 - **A drag-and-drop outline.** Group lessons into sections and drag both into order. With the keyboard, focus a handle and use the arrow keys.
 - **Enrollment and progress.** Members enroll with one click and mark lessons complete as they go. You can make lessons unlock in order, and let anyone preview the first few. "My courses" shows progress bars and a "Continue" button that goes straight back to the lesson they were on.
 - **A discussion for every lesson.** Start one automatically when the lesson is published, or link one that already exists. Students see an "Ask about this lesson" box that opens it.
-- **Certificates.** Finishing a course issues a printable certificate — print it or save it as a PDF from the browser — with the member's name, the course, the date and your forum's logo. Each one has a public verification link that anyone can open to check it is genuine.
+- **Certificates you design.** Finishing a course issues a certificate with the member's name, the course and the date. Choose one of four templates (Classic, Modern, Minimal, Academic), upload a logo, a background and the signer's handwritten signature, and add the signer's name and title. Set a design for the whole forum, and let each course change any part of it, with a live preview as you go. Members can print it, save it as a PDF or download it as an image, and every certificate has a public verification link that previews the certificate when shared.
 - **An instructor panel on the forum.** Instructors manage their own courses, review assignments, see each student's progress and, with Brainstorm, quiz results — without any admin access. They can add co-instructors.
 - **Paid and members-only courses** through groups, or sold directly with Kiosk (see below).
 - **Notifications** in the bell and by email, each one something members can turn off: an assignment was reviewed, a new lesson is out, a course is complete, and (for instructors) a student handed something in.
@@ -39,6 +39,8 @@ Teach inside your community. Build a course out of text, video, assignment and q
 | The certificate | What someone checking it sees |
 | --- | --- |
 | ![A certificate](screenshots/certificate.jpg) | ![The verification page](screenshots/certificate-verify.jpg) |
+
+![The certificate designer in the course editor](screenshots/certificate-designer.jpg)
 
 <sub>Cover photos in the screenshots are from Unsplash.</sub>
 
@@ -106,12 +108,14 @@ In the admin panel, under Syllabus:
 - **Course categories** — add, rename, delete and drag into order.
 - **Show "Courses" in the sidebar.**
 - **Tag for lesson discussions** — where "Ask about this lesson" discussions start, unless a course picks its own. Instructors need permission to start discussions there.
-- **Certificate wording, signature line and logo.** The wording can use `{name}`, `{course}`, `{date}` and `{forum}`. Without a logo address the forum's logo is used.
+- **Certificate wording.** It can use `{name}`, `{course}`, `{date}` and `{forum}`.
+- **Certificate design** — the forum's default template, logo, background, signature, signer's name and title, with a live preview. Without a logo of its own, a certificate uses the forum's logo (PNG, JPEG, GIF or WebP; an SVG logo is left off). Instructors can change any part for their own course in the course editor, under **Certificate**; whatever a course leaves empty comes from this default.
 - **Uploads** — the largest assignment file, which file types students may submit, the largest lesson video (0 turns video uploads off and leaves YouTube and Vimeo), and how many assignments a member may submit per hour.
 
 ## Uploads and privacy
 
 - Cover images are checked, resized and re-saved as WebP, so only the picture itself is kept.
+- Certificate logos, backgrounds and signatures are checked the same way, re-saved as PNG or JPEG, and kept outside your public folder. They are never served on their own: Syllabus draws them into the certificate, which is one image that the page shows, the printout uses and links share. Only admins set the forum's design, and only a course's instructors and course managers set a course's.
 - Lesson videos and assignment files are stored outside your public folder and are only ever sent to people allowed to see them: a video to those who can open its lesson, an assignment file to the student who submitted it and the course's instructors. They are always sent as downloads. Web pages, SVG images, scripts and programs are refused whatever the file name says.
 - YouTube videos play from `youtube-nocookie.com`, Vimeo videos with "do not track".
 - A certificate's verification link contains a long random code. It shows the member's name, the course and the date — nothing else.
@@ -122,7 +126,9 @@ In the admin panel, under Syllabus:
 - **"The lesson was saved, but its discussion couldn't be started".** The instructor isn't allowed to start discussions in the chosen tag, or the tag needs approval. Choose another tag, or link an existing discussion instead.
 - **A quiz lesson doesn't complete.** Check that the student passed (not just finished) the quiz, and that the lesson is open to them — in a course that unlocks in order, the lessons before it come first. Practice runs by a quiz's own authors never count. Opening the lesson again re-checks.
 - **The widget doesn't show in FoF Forum Widgets.** It is opt-in: open FoF's layout editor, drag "Courses" into a section and save.
-- **The certificate prints with the forum around it.** Use your browser's print dialog from the certificate page; Syllabus hides everything but the certificate. Turn on "Background graphics" to keep the border.
+- **The certificate prints with the forum around it.** Use **Print or save as PDF** on the certificate page: it prints the certificate alone, on one landscape A4 page.
+- **A name shows as boxes on a certificate.** The templates' fonts cover Latin, Greek and Cyrillic, and names in other scripts fall back to DejaVu Sans; Chinese, Japanese and Korean names are not covered yet.
+- **Text is hard to read on my background.** A background replaces the template's paper and frame and the text is printed on top, so choose a light, quiet image.
 
 ## Links
 

@@ -2,6 +2,7 @@ import app from 'flarum/admin/app';
 import Extend from 'flarum/common/extenders';
 import Select from 'flarum/common/components/Select';
 import CategoriesSetting from './CategoriesSetting';
+import CertificateSetting from './CertificateSetting';
 
 /*
  * Syllabus's admin: permissions, categories and a handful of settings.
@@ -39,19 +40,7 @@ export default [
       }),
       70
     )
-    .setting(
-      () => ({
-        setting: key('certificate_signature'),
-        type: 'text',
-        label: t('settings.certificate_signature'),
-        help: t('settings.certificate_signature_help'),
-      }),
-      60
-    )
-    .setting(
-      () => ({ setting: key('certificate_logo'), type: 'url', label: t('settings.certificate_logo'), help: t('settings.certificate_logo_help') }),
-      50
-    )
+    .customSetting(() => <CertificateSetting />, 60)
     .setting(() => ({ setting: key('max_file_mb'), type: 'number', min: 1, max: 4096, label: t('settings.max_file_mb') }), 40)
     .setting(() => ({ setting: key('file_types'), type: 'text', label: t('settings.file_types'), help: t('settings.file_types_help') }), 30)
     .setting(

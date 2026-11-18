@@ -89,7 +89,21 @@ export interface EditableCourse {
   tagId: number | null;
   badgeId: number | null;
   instructors: Person[];
+  certificate?: CertificateDesign;
 }
+
+/** A certificate design as the editor shows it: empty text means "use the default". */
+export interface CertificateDesign {
+  template: string;
+  signerName: string;
+  signerTitle: string;
+  hasLogo: boolean;
+  hasBackground: boolean;
+  hasSignature: boolean;
+}
+
+export const CERTIFICATE_TEMPLATES = ['classic', 'modern', 'minimal', 'academic'];
+export const CERTIFICATE_IMAGES = ['logo', 'background', 'signature'] as const;
 
 export interface Course extends CourseCard {
   descriptionHtml: string | null;
@@ -199,9 +213,7 @@ export interface Certificate {
   issuedAt: string;
   course: { id: number; slug: string } | null;
   isOwner: boolean;
-  text: string;
-  signature: string;
-  logoUrl: string | null;
+  imageUrl: string;
   verifyUrl: string;
 }
 
@@ -283,3 +295,18 @@ export const certificate = (code: string) => call<{ data: Certificate }>('GET', 
 export const userCourses = (userId: string) => call<{ data: CourseCard[]; meta: { hidden: boolean } }>('GET', `/users/${userId}/courses`);
 
 export { courseUrl, lessonUrl, certificateUrl, routeId } from './urls';
+
+/** The certificate design's endpoints: a course's (with its id) or the forum's default. */
+const designPath = (courseId?: number) => (courseId ? `/courses/${courseId}/certificate` : '/certificate-design');
+export const forumDesign = () => call<{ data: CertificateDesign }>('GET', '/certificate-design');
+export const saveForumDesign = (data: Partial<CertificateDesign>) => call<{ data: CertificateDesign }>('PATCH', '/certificate-design', data);
+export const uploadDesignImage = (kind: string, file: File, courseId?: number) => {
+  const form = new FormData();
+  form.append('image', file);
+  return upload<{ data: CertificateDesign }>(`${designPath(courseId)}/${kind}`, form);
+};
+export const removeDesignImage = (kind: string, courseId?: number) => call<{ data: CertificateDesign }>('DELETE', `${designPath(courseId)}/${kind}`);
+export const designPreviewUrl = (design: CertificateDesign, courseId: number | undefined, version: number) =>
+  api(`${designPath(courseId)}/preview`) +
+  '?' +
+  new URLSearchParams({ template: design.template, signerName: design.signerName, signerTitle: design.signerTitle, v: String(version) }).toString();

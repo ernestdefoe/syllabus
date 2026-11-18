@@ -88,12 +88,24 @@ return [
         ->patch('/syllabus/submissions/{id:[0-9]+}', 'syllabus.submissions.review', Api\SubmissionsController::class)
         ->get('/syllabus/files/{id:[0-9]+}', 'syllabus.files.show', Api\FileController::class)
         ->get('/syllabus/certificates/{code:[0-9a-fA-F]{32}}', 'syllabus.certificates.show', Api\CertificateController::class)
+        ->get('/syllabus/certificates/{code:[0-9a-fA-F]{32}}/image', 'syllabus.certificates.image', Api\CertificateImageController::class)
+        ->get('/syllabus/certificate-design', 'syllabus.certificate_design.show', Api\CertificateDesignController::class)
+        ->patch('/syllabus/certificate-design', 'syllabus.certificate_design.update', Api\CertificateDesignController::class)
+        ->get('/syllabus/certificate-design/preview', 'syllabus.certificate_design.preview', Api\CertificatePreviewController::class)
+        ->post('/syllabus/certificate-design/{kind:logo|background|signature}', 'syllabus.certificate_design.image', Api\CertificateDesignController::class)
+        ->delete('/syllabus/certificate-design/{kind:logo|background|signature}', 'syllabus.certificate_design.image.delete', Api\CertificateDesignController::class)
+        ->get('/syllabus/courses/{id:[0-9]+}/certificate/preview', 'syllabus.courses.certificate.preview', Api\CertificatePreviewController::class)
+        ->post('/syllabus/courses/{id:[0-9]+}/certificate/{kind:logo|background|signature}', 'syllabus.courses.certificate.image', Api\CertificateDesignController::class)
+        ->delete('/syllabus/courses/{id:[0-9]+}/certificate/{kind:logo|background|signature}', 'syllabus.courses.certificate.image.delete', Api\CertificateDesignController::class)
         ->get('/syllabus/users/{id:[0-9]+}/courses', 'syllabus.users.courses', Api\UserCoursesController::class),
 
     // Lesson videos and assignment files: outside the public folder, served
     // only through FileController.
     (new Extend\Filesystem())
-        ->disk('syllabus-files', fn (Paths $paths) => ['root' => $paths->storage.'/syllabus']),
+        ->disk('syllabus-files', fn (Paths $paths) => ['root' => $paths->storage.'/syllabus'])
+        // Certificate logos, backgrounds and signatures, and drawn
+        // certificates: private too, only ever drawn into a certificate.
+        ->disk('syllabus-certificates', fn (Paths $paths) => ['root' => $paths->storage.'/syllabus-certificates']),
 
     new Extend\ApiResource(Api\Resource\CourseResource::class),
 

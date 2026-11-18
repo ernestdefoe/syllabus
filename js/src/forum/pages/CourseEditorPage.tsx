@@ -15,6 +15,7 @@ import type { Course, EditableCourse, EditorMeta, OutlineItem, Person } from '..
 import Sortable from '../../common/sortable';
 import SyllabusTextEditor from '../components/SyllabusTextEditor';
 import Field from '../components/Field';
+import CertificateDesigner from '../../common/components/CertificateDesigner';
 import { avatar, failed, lessonIcons, t } from '../components/util';
 
 const blank = (): EditableCourse => ({
@@ -36,6 +37,7 @@ const blank = (): EditableCourse => ({
   tagId: null,
   badgeId: null,
   instructors: [],
+  certificate: { template: '', signerName: '', signerTitle: '', hasLogo: false, hasBackground: false, hasSignature: false },
 });
 
 type Row = OutlineItem & { key: string };
@@ -312,6 +314,15 @@ export default class CourseEditorPage extends Page {
           </div>
 
           {this.instructorsField()}
+
+          <fieldset className="SyllabusFieldset">
+            <legend>{t('editor.certificate')}</legend>
+            {this.course && f.certificate ? (
+              <CertificateDesigner design={f.certificate} courseId={this.course.id} />
+            ) : (
+              <div className="helpText">{t('editor.certificate_after_save')}</div>
+            )}
+          </fieldset>
 
           <div className="SyllabusEditor-save">
             <Switch state={f.status === 'published'} onchange={(v: boolean) => (f.status = v ? 'published' : 'draft')}>

@@ -19,7 +19,8 @@ class CourseSaver
         private ConnectionInterface $db,
         private ExtensionManager $extensions,
         private TranslatorInterface $translator,
-        private Uploads $uploads
+        private Uploads $uploads,
+        private Certificates\Design $design
     ) {
     }
 
@@ -140,6 +141,11 @@ class CourseSaver
                 }
             }
             $instructorIds = $users->pluck('id')->map(fn ($id) => (int) $id)->all();
+        }
+
+        if ($has('certificate') && is_array($data['certificate'])) {
+            $stored = array_merge($this->design->course($course), $this->design->text($data['certificate']));
+            $this->design->saveCourse($course, array_filter($stored, fn ($v) => $v !== ''));
         }
 
         $saved = $this->db->transaction(function () use ($course, $groupIds, $instructorIds) {

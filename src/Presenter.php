@@ -22,7 +22,8 @@ class Presenter
         private Outline $outline,
         private Uploads $uploads,
         private Brainstorm $brainstorm,
-        private UrlGenerator $url
+        private UrlGenerator $url,
+        private Certificates\Design $design
     ) {
     }
 
@@ -184,6 +185,7 @@ class Presenter
             'tagId' => $course->tag_id,
             'badgeId' => $course->badge_id,
             'instructors' => $course->instructors->map(fn (User $u) => $this->person($u))->values()->all(),
+            'certificate' => $this->design->editable($this->design->course($course)),
         ];
     }
 

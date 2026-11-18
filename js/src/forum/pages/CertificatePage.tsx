@@ -12,8 +12,11 @@ import { t } from '../components/util';
 
 /**
  * /certificates/:code — for the member who earned it, the certificate itself,
- * ready to print (or save as PDF from the print dialog); for anyone else with
- * the link, a short verification that it is genuine.
+ * ready to print (or save as PDF from the print dialog) or download; for
+ * anyone else with the link, a short verification that it is genuine, with
+ * the certificate under it. The certificate is one drawing from the server
+ * (see Certificates\Renderer), so the page, the printout and the share image
+ * are the same picture.
  */
 export default class CertificatePage extends Page {
   cert: Certificate | null = null;
@@ -59,16 +62,19 @@ export default class CertificatePage extends Page {
     return dayjs(cert.issuedAt).format('LL');
   }
 
-  /** The admin's wording, or the default, with its placeholders filled in — as text, never HTML. */
-  text(cert: Certificate): string {
-    const forum = app.forum.attribute<string>('title');
-    if (!cert.text)
-      return extractText(t('certificate.default_text', { forum, date: this.date(cert), name: cert.userName, course: cert.courseTitle }));
-    return cert.text
-      .replace(/\{name\}/g, cert.userName)
-      .replace(/\{course\}/g, cert.courseTitle)
-      .replace(/\{date\}/g, this.date(cert))
-      .replace(/\{forum\}/g, forum);
+  /** The drawing, linked to itself at full size: on a phone, a tap opens it to zoom. */
+  image(cert: Certificate): Mithril.Children {
+    return (
+      <a className="SyllabusCertificate-link" href={cert.imageUrl} target="_blank" rel="noopener">
+        <img
+          className="SyllabusCertificate-image"
+          src={cert.imageUrl}
+          width="2400"
+          height="1697"
+          alt={extractText(t('certificate.share_title', { name: cert.userName, course: cert.courseTitle }))}
+        />
+      </a>
+    );
   }
 
   certificate(cert: Certificate): Mithril.Children {
@@ -78,6 +84,10 @@ export default class CertificatePage extends Page {
           <Button className="Button Button--primary" icon="fas fa-print" onclick={() => window.print()}>
             {t('certificate.print')}
           </Button>
+          <a className="Button" href={cert.imageUrl + '&download=1'} download>
+            <Icon name="fas fa-download" className="Button-icon" />
+            <span className="Button-label">{t('certificate.download')}</span>
+          </a>
           <Button
             className="Button"
             icon="fas fa-link"
@@ -91,28 +101,7 @@ export default class CertificatePage extends Page {
             </Link>
           ) : null}
         </div>
-        <article className="SyllabusCertificate">
-          {cert.logoUrl ? <img className="SyllabusCertificate-logo" src={cert.logoUrl} alt={app.forum.attribute<string>('title')} /> : null}
-          <div className="SyllabusCertificate-kicker">{t('certificate.heading')}</div>
-          <div className="SyllabusCertificate-presented">{t('certificate.presented_to')}</div>
-          <h1 className="SyllabusCertificate-name">{cert.userName}</h1>
-          <div className="SyllabusCertificate-for">{t('certificate.for_completing')}</div>
-          <h2 className="SyllabusCertificate-course">{cert.courseTitle}</h2>
-          <p className="SyllabusCertificate-text">{this.text(cert)}</p>
-          <div className="SyllabusCertificate-foot">
-            <div>
-              <div className="SyllabusCertificate-line">{this.date(cert)}</div>
-              <small>{t('certificate.date')}</small>
-            </div>
-            <div>
-              <div className="SyllabusCertificate-line">{cert.signature || app.forum.attribute<string>('title')}</div>
-              <small>{t('certificate.issued_by')}</small>
-            </div>
-          </div>
-          <div className="SyllabusCertificate-verify">
-            {t('certificate.verify_at')} <span>{cert.verifyUrl}</span>
-          </div>
-        </article>
+        <article className="SyllabusCertificate">{this.image(cert)}</article>
       </div>
     );
   }
@@ -129,6 +118,7 @@ export default class CertificatePage extends Page {
             {t('certificate.see_course')}
           </Link>
         ) : null}
+        <article className="SyllabusCertificate SyllabusCertificate--shared">{this.image(cert)}</article>
       </div>
     );
   }

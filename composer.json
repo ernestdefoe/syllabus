@@ -32,6 +32,7 @@
     ],
     "require": {
         "php": "^8.3",
+        "ext-gd": "*",
         "flarum/core": "^2.0"
     },
     "suggest": {
