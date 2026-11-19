@@ -13,7 +13,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * A sample certificate drawn with the editor's unsaved choices (query
- * template, signerName, signerTitle), for the live preview.
+ * template, signerName, signerTitle), for the live preview: SVG with
+ * ?format=svg (what the editor shows), otherwise the JPEG share image.
  *
  *   GET /api/syllabus/certificate-design/preview        admins: the forum default
  *   GET /api/syllabus/courses/{id}/certificate/preview  who may edit the course
@@ -37,7 +38,11 @@ class CertificatePreviewController implements RequestHandlerInterface
         }
 
         $draft = array_intersect_key($request->getQueryParams(), array_flip(['template', 'signerName', 'signerTitle']));
-        $jpeg = $this->drawing->preview($course, $draft, $actor, $course ? 'course' : 'forum');
+        $scope = $course ? 'course' : 'forum';
+        if (($request->getQueryParams()['format'] ?? '') === 'svg') {
+            return CertificateSvgController::svg($this->drawing->preview($course, $draft, $actor, $scope, true), ['Cache-Control' => 'private, no-store']);
+        }
+        $jpeg = $this->drawing->preview($course, $draft, $actor, $scope);
 
         $body = new Stream('php://temp', 'wb+');
         $body->write($jpeg);

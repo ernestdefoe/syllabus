@@ -41,6 +41,12 @@ class Drawing
         return $this->url->to('api')->route('syllabus.certificates.image', ['code' => $certificate->code]).'?v='.$this->version($certificate);
     }
 
+    /** The address of the certificate's SVG, versioned the same way. */
+    public function svgUrl(Certificate $certificate): string
+    {
+        return $this->url->to('api')->route('syllabus.certificates.svg', ['code' => $certificate->code]).'?v='.$this->version($certificate);
+    }
+
     /** @return array{0: string, 1: string} the JPEG and its version */
     public function certificate(Certificate $certificate): array
     {
@@ -62,34 +68,54 @@ class Drawing
         return [$jpeg, $version];
     }
 
+    /** @return array{0: string, 1: string} the SVG the certificate page shows, prints and downloads, and its version */
+    public function certificateSvg(Certificate $certificate): array
+    {
+        $design = $this->design->resolve($certificate->course);
+        $words = $this->wordsFor($certificate);
+        $label = $this->translator->trans('ernestdefoe-syllabus.forum.certificate.share_title', ['{name}' => $certificate->user_name, '{course}' => $certificate->course_title]);
+
+        return [$this->svg($design, $words, $label), $this->design->fingerprint($design, $words)];
+    }
+
     /**
      * A sample certificate for the editor: the actor's name, the course's
      * title (or a sample), today's date, and the editor's unsaved choices.
      *
      * @param 'course'|'forum' $scope
      */
-    public function preview(?Course $course, array $draft, User $actor, string $scope): string
+    public function preview(?Course $course, array $draft, User $actor, string $scope, bool $svg = false): string
     {
         $design = $this->design->resolve($course, $draft, $scope);
         $title = $course ? $course->title : $this->translator->trans('ernestdefoe-syllabus.forum.certificate.sample_course');
         $words = $this->words((string) $actor->display_name, $title, Carbon::now(), str_repeat('0', 32));
 
-        return $this->draw($design, $words, self::PREVIEW_WIDTH);
-    }
-
-    public function forget(string $code): void
-    {
-        $this->images->disk()->deleteDirectory('rendered/'.$code);
+        return $svg
+            ? $this->svg($design, $words, $this->translator->trans('ernestdefoe-syllabus.lib.designer.preview_alt'))
+            : $this->draw($design, $words, self::PREVIEW_WIDTH);
     }
 
     private function draw(array $design, array $words, int $width): string
+    {
+        return $this->renderer->render($design, $this->imagesFor($design), $words, $width);
+    }
+
+    private function svg(array $design, array $words, string $label): string
+    {
+        $fontUrl = fn (string $file) => $this->url->to('api')->route('syllabus.fonts', ['name' => $file]).'?v='.Renderer::VERSION;
+
+        return $this->renderer->svg($design, $this->imagesFor($design), $words, $fontUrl, $label);
+    }
+
+    /** @return array<string, ?string> */
+    private function imagesFor(array $design): array
     {
         $images = [];
         foreach (Design::IMAGES as $key) {
             $images[$key] = $this->images->read($design[$key]);
         }
 
-        return $this->renderer->render($design, $images, $words, $width);
+        return $images;
     }
 
     /** @return array<string, string> */

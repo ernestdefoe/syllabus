@@ -319,7 +319,6 @@ ernestdefoe-syllabus:
       seal_line1: Course
       seal_line2: Certificate
       unsupported_text: (shown on the verification page)
-      drawn_partly: "Some of this certificate's text is in a script the certificate can't draw yet, so it reads: {text}"
 
     profile:
       nav: Courses

@@ -8,6 +8,7 @@ import extractText from 'flarum/common/utils/extractText';
 import type Mithril from 'mithril';
 import { CERTIFICATE_IMAGES, CERTIFICATE_TEMPLATES, designPreviewUrl, removeDesignImage, uploadDesignImage } from '../api';
 import type { CertificateDesign } from '../api';
+import CertificateSvg, { loadSvg } from './CertificateSvg';
 
 export interface CertificateDesignerAttrs extends ComponentAttrs {
   design: CertificateDesign;
@@ -22,38 +23,42 @@ const t = (key: string, params: Record<string, unknown> = {}) => app.translator.
 /**
  * The certificate designer: a template, a logo, a background, the signer's
  * signature, name and title, and a live preview drawn by the server — the
- * same drawing the certificate page, its printout and its share image use.
+ * same SVG the certificate page shows, prints and downloads.
  * In a course, every part can be left to the forum's default.
  */
 export default class CertificateDesigner extends Component<CertificateDesignerAttrs> {
+  /** Which request is the latest, so a slow answer never replaces a newer one. */
   version = 0;
-  shown = '';
+  svg = '';
   loading = true;
   busy = '';
   timer = 0;
 
   oninit(vnode: Mithril.Vnode<CertificateDesignerAttrs, this>) {
     super.oninit(vnode);
-    this.shown = this.url();
+    this.fetch();
   }
 
   onremove() {
     window.clearTimeout(this.timer);
   }
 
-  url(): string {
-    return designPreviewUrl(this.attrs.design, this.attrs.courseId, this.version);
+  fetch() {
+    const version = ++this.version;
+    this.loading = true;
+    const done = (svg: string) => {
+      if (version !== this.version) return;
+      this.svg = svg;
+      this.loading = false;
+      m.redraw();
+    };
+    loadSvg(designPreviewUrl(this.attrs.design, this.attrs.courseId)).then(done, () => done(this.svg));
   }
 
   /** Redraws the preview: at once for a click, after a pause for typing. */
   refresh(wait = 0) {
     window.clearTimeout(this.timer);
-    this.timer = window.setTimeout(() => {
-      this.version++;
-      this.shown = this.url();
-      this.loading = true;
-      m.redraw();
-    }, wait);
+    this.timer = window.setTimeout(() => this.fetch(), wait);
     this.attrs.onchange?.(this.attrs.design);
   }
 
@@ -112,18 +117,7 @@ export default class CertificateDesigner extends Component<CertificateDesignerAt
 
         <figure className="SyllabusDesigner-preview">
           <div className="SyllabusDesigner-frame">
-            <img
-              src={this.shown}
-              alt={extractText(t('preview_alt'))}
-              onload={() => {
-                this.loading = false;
-                m.redraw();
-              }}
-              onerror={() => {
-                this.loading = false;
-                m.redraw();
-              }}
-            />
+            {this.svg ? <CertificateSvg svg={this.svg} /> : <div className="SyllabusDesigner-blank" aria-label={extractText(t('preview_alt'))} />}
             {this.loading ? <LoadingIndicator size="small" /> : null}
           </div>
           <figcaption className="helpText">{t('preview_caption')}</figcaption>

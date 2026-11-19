@@ -214,7 +214,7 @@ export interface Certificate {
   course: { id: number; slug: string } | null;
   isOwner: boolean;
   imageUrl: string;
-  drawnInFull: boolean;
+  svgUrl: string;
   verifyUrl: string;
 }
 
@@ -307,7 +307,7 @@ export const uploadDesignImage = (kind: string, file: File, courseId?: number) =
   return upload<{ data: CertificateDesign }>(`${designPath(courseId)}/${kind}`, form);
 };
 export const removeDesignImage = (kind: string, courseId?: number) => call<{ data: CertificateDesign }>('DELETE', `${designPath(courseId)}/${kind}`);
-export const designPreviewUrl = (design: CertificateDesign, courseId: number | undefined, version: number) =>
+export const designPreviewUrl = (design: CertificateDesign, courseId: number | undefined) =>
   api(`${designPath(courseId)}/preview`) +
   '?' +
-  new URLSearchParams({ template: design.template, signerName: design.signerName, signerTitle: design.signerTitle, v: String(version) }).toString();
+  new URLSearchParams({ format: 'svg', template: design.template, signerName: design.signerName, signerTitle: design.signerTitle }).toString();

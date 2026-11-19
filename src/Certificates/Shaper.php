@@ -7,13 +7,15 @@ namespace Ernestdefoe\Syllabus\Certificates;
  * another, left to right, with no shaping. So Arabic-script letters are
  * replaced by their joined forms (initial, medial, final, isolated, and the
  * lam-alef ligatures) from the Unicode presentation-form blocks, which the
- * bundled DejaVu Sans covers, and right-to-left runs (Arabic, Persian, Urdu,
+ * bundled Vazirmatn covers, and right-to-left runs (Arabic, Persian, Urdu,
  * Hebrew) are put in visual order, with Latin words and numbers inside them
  * kept left to right.
  *
- * Scripts that need real shaping or fonts we don't bundle (Chinese, Japanese,
- * Korean, Thai, Indic and others) are reported by unsupported(), so the
- * renderer can say where to read that text instead of drawing empty boxes.
+ * This is only for the server image: the certificate page is SVG, which the
+ * browser shapes itself. Scripts that need real shaping or fonts we don't
+ * bundle (Chinese, Japanese, Korean, Thai, Indic and others) are reported by
+ * unsupported(), so the server image can point to the page instead of
+ * drawing empty boxes.
  */
 class Shaper
 {
@@ -33,12 +35,12 @@ class Shaper
         0x0647 => [0xFEE9, 0xFEEA, 0xFEEB, 0xFEEC], 0x0648 => [0xFEED, 0xFEEE], 0x0649 => [0xFEEF, 0xFEF0, 0xFBE8, 0xFBE9],
         0x064A => [0xFEF1, 0xFEF2, 0xFEF3, 0xFEF4],
         // Alef wasla; Persian peh, tcheh, jeh, keheh, gaf, Farsi yeh; Urdu tteh, ddal, rreh, heh doachashmee, heh goal, yeh barree.
-        // DejaVu has no forms for alef wasla, heh goal or yeh barree: they borrow alef's, heh's and alef maksura's.
-        0x0671 => [0xFE8D, 0xFE8E], 0x067E => [0xFB56, 0xFB57, 0xFB58, 0xFB59], 0x0686 => [0xFB7A, 0xFB7B, 0xFB7C, 0xFB7D],
+        // Vazirmatn has no forms for heh goal: it borrows heh's.
+        0x0671 => [0xFB50, 0xFB51], 0x067E => [0xFB56, 0xFB57, 0xFB58, 0xFB59], 0x0686 => [0xFB7A, 0xFB7B, 0xFB7C, 0xFB7D],
         0x0698 => [0xFB8A, 0xFB8B], 0x06A9 => [0xFB8E, 0xFB8F, 0xFB90, 0xFB91], 0x06AF => [0xFB92, 0xFB93, 0xFB94, 0xFB95],
         0x06CC => [0xFBFC, 0xFBFD, 0xFBFE, 0xFBFF], 0x0679 => [0xFB66, 0xFB67, 0xFB68, 0xFB69], 0x0688 => [0xFB88, 0xFB89],
         0x0691 => [0xFB8C, 0xFB8D], 0x06BE => [0xFBAA, 0xFBAB, 0xFBAC, 0xFBAD], 0x06C1 => [0xFEE9, 0xFEEA, 0xFEEB, 0xFEEC],
-        0x06D2 => [0xFEEF, 0xFEF0],
+        0x06D2 => [0xFBAE, 0xFBAF],
     ];
 
     /** Lam followed by an alef: [isolated, final] ligature. */

@@ -195,7 +195,7 @@ class CertificateDesignTest extends SyllabusTestCase
     }
 
     #[Test]
-    public function certificates_in_every_sample_script_render_and_say_when_text_could_not_be_drawn(): void
+    public function certificates_in_every_sample_script_render_and_the_page_keeps_text_the_image_cannot_draw(): void
     {
         $renderer = new Renderer();
         $words = ['kicker' => 'Certificate of completion', 'presented' => 'This certifies that', 'completed' => 'has completed the course',
@@ -208,14 +208,71 @@ class CertificateDesignTest extends SyllabusTestCase
             }
         }
 
-        // The certificate page is told when the drawing had to leave a name out.
+        // The page's SVG keeps the real text for the browser to shape; the share image points to the page.
         $course = $this->course(['title' => '编程入门']);
         $lesson = $this->lesson($course['id']);
         $this->enrol($course['id']);
         $this->complete($lesson['id']);
         $code = (string) $this->database()->table('syllabus_certificates')->value('code');
         [, $body] = $this->json('GET', '/api/syllabus/certificates/'.$code, null);
-        $this->assertFalse($body['data']['drawnInFull']);
+        $this->assertMatchesRegularExpression('~/syllabus/certificates/'.$code.'/svg\?v=[0-9a-f]{16}$~', $body['data']['svgUrl']);
+        $svg = $this->send($this->request('GET', "/api/syllabus/certificates/$code/svg"));
+        $this->assertSame(200, $svg->getStatusCode());
+        $this->assertStringStartsWith('image/svg+xml', $svg->getHeaderLine('Content-Type'));
+        $this->assertStringContainsString("sandbox", $svg->getHeaderLine('Content-Security-Policy'));
+        $this->assertStringContainsString('>编程入门</text>', (string) $svg->getBody());
+        $this->assertStringNotContainsString('verification page', (string) $svg->getBody());
+    }
+
+    #[Test]
+    public function the_svg_and_the_jpeg_are_painted_from_the_same_layout(): void
+    {
+        $words = ['kicker' => 'Certificate of completion', 'presented' => 'This certifies that', 'name' => 'محمد رضایی', 'completed' => 'has completed the course',
+            'course' => 'מבוא לתכנות', 'text' => 'Awarded on November 18, 2026.', 'date' => 'November 18, 2026', 'dateLabel' => 'Date', 'issuedBy' => 'Issued by',
+            'verify' => 'Verify', 'seal1' => 'Course', 'seal2' => 'Certificate', 'unsupported' => '(shown on the verification page)'];
+        foreach (Design::TEMPLATES as $template) {
+            $design = ['template' => $template, 'signerName' => 'Ernest Defoe', 'signerTitle' => 'Lead instructor'];
+            $ops = (new \Ernestdefoe\Syllabus\Certificates\Layout())->build($design, [], $words, false);
+            $svg = (new \Ernestdefoe\Syllabus\Certificates\SvgPainter())->paint($ops, [], fn ($f) => "/fonts/$f", 'label');
+            $doc = new \DOMDocument();
+            $this->assertTrue($doc->loadXML($svg), "$template: well-formed SVG");
+
+            // Every text operation becomes one <text> at the same point, with the same words.
+            $texts = array_values(array_filter($ops, fn ($op) => $op[0] === 'text'));
+            $nodes = $doc->getElementsByTagName('text');
+            $this->assertSame(count($texts), $nodes->length, $template);
+            foreach ($texts as $i => $op) {
+                $node = $nodes->item($i);
+                $this->assertSame($op[1], $node->textContent);
+                $this->assertEqualsWithDelta($op[4], (float) $node->getAttribute('x'), 0.01);
+                $this->assertEqualsWithDelta($op[5], (float) $node->getAttribute('y'), 0.01);
+            }
+            // Arabic text brings its font, Latin-only text doesn't.
+            $this->assertStringContainsString('SylVazirmatn;font-weight:100 900', $svg);
+            $this->assertNotEmpty((new Renderer())->render($design, [], $words, 600));
+        }
+
+        $latin = (new Renderer())->svg(['template' => 'classic', 'signerName' => 'Ann', 'signerTitle' => ''], [], array_merge($words, ['name' => 'Ann Lee', 'course' => 'Baking']), fn ($f) => "/fonts/$f", 'x');
+        $this->assertStringNotContainsString('SylVazirmatn;', $latin);
+    }
+
+    #[Test]
+    public function svg_text_is_escaped_and_fonts_are_served_from_an_allow_list(): void
+    {
+        $words = ['kicker' => 'K', 'presented' => 'P', 'name' => '<script>alert(1)</script>', 'completed' => 'C', 'course' => '"><img src=x onerror=alert(1)>',
+            'text' => '', 'date' => 'D', 'dateLabel' => 'D', 'issuedBy' => 'I', 'verify' => 'V', 'seal1' => 'S', 'seal2' => 'S', 'unsupported' => 'U'];
+        $svg = (new Renderer())->svg(['template' => 'minimal', 'signerName' => '<b>x</b>', 'signerTitle' => ''], [], $words, fn ($f) => "/fonts/$f", '"label');
+        $this->assertStringNotContainsString('<script', $svg);
+        $this->assertStringNotContainsString('<img', $svg);
+        $this->assertStringNotContainsString('<b>', $svg);
+        $this->assertStringContainsString('&lt;script&gt;', $svg);
+
+        $font = $this->send($this->request('GET', '/api/syllabus/fonts/Lato-Bold'));
+        $this->assertSame(200, $font->getStatusCode());
+        $this->assertSame('font/woff2', $font->getHeaderLine('Content-Type'));
+        $this->assertStringStartsWith('wOF2', (string) $font->getBody());
+        $this->assertSame(404, $this->send($this->request('GET', '/api/syllabus/fonts/OFL-Lato'))->getStatusCode());
+        $this->assertSame(404, $this->send($this->request('GET', '/api/syllabus/fonts/DejaVuSans-Bold'))->getStatusCode());
     }
 
     private function image(string $code): ResponseInterface

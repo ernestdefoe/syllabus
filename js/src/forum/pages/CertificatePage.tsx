@@ -7,6 +7,7 @@ import Icon from 'flarum/common/components/Icon';
 import extractText from 'flarum/common/utils/extractText';
 import type Mithril from 'mithril';
 import { certificate, courseUrl } from '../../common/api';
+import CertificateSvg, { downloadSvg, loadSvg } from '../../common/components/CertificateSvg';
 import type { Certificate } from '../../common/api';
 import { t } from '../components/util';
 
@@ -14,13 +15,16 @@ import { t } from '../components/util';
  * /certificates/:code — for the member who earned it, the certificate itself,
  * ready to print (or save as PDF from the print dialog) or download; for
  * anyone else with the link, a short verification that it is genuine, with
- * the certificate under it. The certificate is one drawing from the server
- * (see Certificates\Renderer), so the page, the printout and the share image
- * are the same picture.
+ * the certificate under it. The certificate is SVG laid out by the server
+ * (Certificates\Layout) and shaped by the browser, so every script reads
+ * right; the printout and the download are that same SVG, and the share image
+ * is the same layout drawn as a JPEG.
  */
 export default class CertificatePage extends Page {
   cert: Certificate | null = null;
+  svg = '';
   missing = false;
+  downloading = false;
 
   oninit(vnode: Mithril.Vnode) {
     super.oninit(vnode);
@@ -29,6 +33,17 @@ export default class CertificatePage extends Page {
       ({ data }) => {
         this.cert = data;
         m.redraw();
+        loadSvg(data.svgUrl).then(
+          (svg) => {
+            this.svg = svg;
+            m.redraw();
+          },
+          () => {
+            // Without the SVG, the share image stands in.
+            this.svg = 'failed';
+            m.redraw();
+          }
+        );
       },
       () => {
         this.missing = true;
@@ -62,19 +77,31 @@ export default class CertificatePage extends Page {
     return dayjs(cert.issuedAt).format('LL');
   }
 
-  /** The drawing, linked to itself at full size: on a phone, a tap opens it to zoom. */
+  /** The certificate: the SVG once it's here, the share image if it can't load. */
   image(cert: Certificate): Mithril.Children {
-    return (
-      <a className="SyllabusCertificate-link" href={cert.imageUrl} target="_blank" rel="noopener">
-        <img
-          className="SyllabusCertificate-image"
-          src={cert.imageUrl}
-          width="2400"
-          height="1697"
-          alt={extractText(t('certificate.share_title', { name: cert.userName, course: cert.courseTitle }))}
-        />
-      </a>
-    );
+    const label = extractText(t('certificate.share_title', { name: cert.userName, course: cert.courseTitle }));
+    if (this.svg === 'failed') return <img className="SyllabusCertificate-image" src={cert.imageUrl} width="2400" height="1697" alt={label} />;
+    if (!this.svg) return <div className="SyllabusCertificate-image" aria-busy="true" />;
+
+    return <CertificateSvg svg={this.svg} />;
+  }
+
+  download(cert: Certificate) {
+    if (!this.svg || this.svg === 'failed') {
+      window.location.href = cert.imageUrl + '&download=1';
+      return;
+    }
+    this.downloading = true;
+    downloadSvg(this.svg, 'certificate-' + cert.code + '.jpg')
+      .then(
+        () => (this.downloading = false),
+        () => {
+          // The browser couldn't draw it: the server's image instead.
+          this.downloading = false;
+          window.location.href = cert.imageUrl + '&download=1';
+        }
+      )
+      .finally(() => m.redraw());
   }
 
   certificate(cert: Certificate): Mithril.Children {
@@ -84,10 +111,9 @@ export default class CertificatePage extends Page {
           <Button className="Button Button--primary" icon="fas fa-print" onclick={() => window.print()}>
             {t('certificate.print')}
           </Button>
-          <a className="Button" href={cert.imageUrl + '&download=1'} download>
-            <Icon name="fas fa-download" className="Button-icon" />
-            <span className="Button-label">{t('certificate.download')}</span>
-          </a>
+          <Button className="Button" icon="fas fa-download" loading={this.downloading} disabled={!this.svg} onclick={() => this.download(cert)}>
+            {t('certificate.download')}
+          </Button>
           <Button
             className="Button"
             icon="fas fa-link"
@@ -102,13 +128,6 @@ export default class CertificatePage extends Page {
           ) : null}
         </div>
         <article className="SyllabusCertificate">{this.image(cert)}</article>
-        {cert.drawnInFull ? null : (
-          <p className="helpText SyllabusCertificate-note">
-            {t('certificate.drawn_partly', {
-              text: extractText(t('certificate.verified_text', { name: cert.userName, course: cert.courseTitle, date: this.date(cert) })),
-            })}
-          </p>
-        )}
       </div>
     );
   }

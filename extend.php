@@ -89,6 +89,8 @@ return [
         ->get('/syllabus/files/{id:[0-9]+}', 'syllabus.files.show', Api\FileController::class)
         ->get('/syllabus/certificates/{code:[0-9a-fA-F]{32}}', 'syllabus.certificates.show', Api\CertificateController::class)
         ->get('/syllabus/certificates/{code:[0-9a-fA-F]{32}}/image', 'syllabus.certificates.image', Api\CertificateImageController::class)
+        ->get('/syllabus/certificates/{code:[0-9a-fA-F]{32}}/svg', 'syllabus.certificates.svg', Api\CertificateSvgController::class)
+        ->get('/syllabus/fonts/{name:[A-Za-z-]+}', 'syllabus.fonts', Api\FontController::class)
         ->get('/syllabus/certificate-design', 'syllabus.certificate_design.show', Api\CertificateDesignController::class)
         ->patch('/syllabus/certificate-design', 'syllabus.certificate_design.update', Api\CertificateDesignController::class)
         ->get('/syllabus/certificate-design/preview', 'syllabus.certificate_design.preview', Api\CertificatePreviewController::class)
