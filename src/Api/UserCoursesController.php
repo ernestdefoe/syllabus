@@ -38,7 +38,7 @@ class UserCoursesController implements RequestHandlerInterface
         }
 
         $courseIds = Enrolment::query()->where('user_id', $user->id)->orderByRaw('completed_at IS NULL DESC')->orderByDesc('last_seen_at')->limit(100)->pluck('course_id')->all();
-        $courses = Course::query()->visibleTo($actor)->where('status', 'published')->whereIn('id', $courseIds ?: [0])->with(['user', 'category'])->get()
+        $courses = Course::query()->visibleTo($actor)->where('status', 'published')->whereIn('id', $courseIds ?: [0])->with(['user', 'category', 'instructors'])->get()
             ->sortBy(fn (Course $c) => array_search($c->id, $courseIds, true))->values();
 
         // The cards carry the profile owner's progress, not the viewer's.

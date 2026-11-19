@@ -64,7 +64,7 @@ class EditorMetaController implements RequestHandlerInterface
             'canBadge' => $manager && $badges !== [],
             'quizzesEnabled' => $this->brainstorm->enabled(),
             'quizzes' => $this->brainstorm->options($actor),
-            'maxVideoMb' => $this->uploads->mb('max_video_mb', 200),
+            'maxVideoMb' => $this->uploads->mb('max_video_mb'),
             // "People who buy it" is offered only when Kiosk can sell it.
             'kiosk' => $this->extensions->isEnabled('ernestdefoe-kiosk'),
         ]]);

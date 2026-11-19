@@ -1,3 +1,4 @@
+import app from 'flarum/common/app';
 import Component from 'flarum/common/Component';
 import type { ComponentAttrs } from 'flarum/common/Component';
 import type Mithril from 'mithril';
@@ -46,9 +47,10 @@ export default class CertificateSvg extends Component<CertificateSvgAttrs> {
   }
 }
 
-/** The certificate's SVG, fetched as text (the session cookie comes along; no write, so no CSRF token). */
+/** The certificate's SVG, as text. Failures are handled by the caller, which has a fallback for each. */
 export function loadSvg(url: string): Promise<string> {
-  return fetch(url, { credentials: 'same-origin' }).then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))));
+  // app.request parses every answer as JSON: wrap the SVG's text as a JSON string first.
+  return app.request<string>({ method: 'GET', url, modifyText: (text: string) => JSON.stringify(text), errorHandler: () => {} });
 }
 
 /**
@@ -60,6 +62,7 @@ export function loadSvg(url: string): Promise<string> {
 export async function downloadSvg(svg: string, filename: string): Promise<void> {
   const urls = Array.from(new Set(Array.from(svg.matchAll(/url\('([^']+)'\)/g), (m) => m[1])));
   for (const url of urls) {
+    // A font is binary, which app.request (text and JSON) doesn't carry: plain fetch, same origin, cached for a year.
     const blob = await fetch(url.replace(/&amp;/g, '&')).then((r) => r.blob());
     const data = await new Promise<string>((resolve) => {
       const reader = new FileReader();

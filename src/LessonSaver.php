@@ -3,10 +3,10 @@
 namespace Ernestdefoe\Syllabus;
 
 use Carbon\Carbon;
-use Ernestdefoe\Syllabus\Notification\NewLessonBlueprint;
+use Ernestdefoe\Syllabus\Job\NotifyNewLesson;
 use Flarum\Foundation\ValidationException;
-use Flarum\Notification\NotificationSyncer;
 use Flarum\User\User;
+use Illuminate\Contracts\Queue\Queue;
 use Illuminate\Support\Str;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -18,7 +18,7 @@ class LessonSaver
         private RichText $rich,
         private Brainstorm $brainstorm,
         private LessonDiscussions $discussions,
-        private NotificationSyncer $notifications,
+        private Queue $queue,
         private TranslatorInterface $translator
     ) {
     }
@@ -122,23 +122,11 @@ class LessonSaver
         }
 
         if ($firstPublish && $course->isPublished() && $course->notify_new_lessons) {
-            $this->notifyStudents($lesson, $course, $actor);
+            // Off the request: a course can have thousands of students.
+            $this->queue->push(new NotifyNewLesson($lesson->id, $actor->id));
         }
 
         return [$lesson, $discussionError];
-    }
-
-    /** Tell enrolled members about a newly published lesson; they can turn this off per type. */
-    private function notifyStudents(Lesson $lesson, Course $course, User $actor): void
-    {
-        // One sync for everyone: the syncer hides this notification from anyone left out of the list.
-        $users = User::query()
-            ->whereIn('id', Enrolment::query()->where('course_id', $course->id)->where('user_id', '!=', $actor->id)->select('user_id'))
-            ->get()->all();
-
-        if ($users) {
-            $this->notifications->sync(new NewLessonBlueprint($lesson, $course, $actor), $users);
-        }
     }
 
     /** @param array<string, string> $params */

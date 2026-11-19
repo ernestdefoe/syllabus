@@ -54,18 +54,27 @@ class Drawing
         $words = $this->wordsFor($certificate);
         $version = $this->design->fingerprint($design, $words);
 
+        return [$this->cached($certificate->code, "$version.jpg", fn () => $this->draw($design, $words, Renderer::WIDTH)), $version];
+    }
+
+    /**
+     * A drawing kept on the certificates disk until its version changes; older
+     * versions of it are removed when a new one is drawn.
+     */
+    private function cached(string $code, string $file, \Closure $draw): string
+    {
         $disk = $this->images->disk();
-        $dir = 'rendered/'.$certificate->code;
-        $path = "$dir/$version.jpg";
-        if ($disk->exists($path)) {
-            return [(string) $disk->get($path), $version];
+        $dir = 'rendered/'.$code;
+        if ($disk->exists("$dir/$file")) {
+            return (string) $disk->get("$dir/$file");
         }
 
-        $jpeg = $this->draw($design, $words, Renderer::WIDTH);
-        $disk->delete($disk->files($dir));
-        $disk->put($path, $jpeg);
+        $content = $draw();
+        $ext = pathinfo($file, PATHINFO_EXTENSION);
+        $disk->delete(array_filter($disk->files($dir), fn ($old) => str_ends_with($old, ".$ext")));
+        $disk->put("$dir/$file", $content);
 
-        return [$jpeg, $version];
+        return $content;
     }
 
     /** @return array{0: string, 1: string} the SVG the certificate page shows, prints and downloads, and its version */
@@ -75,7 +84,9 @@ class Drawing
         $words = $this->wordsFor($certificate);
         $label = $this->translator->trans('ernestdefoe-syllabus.forum.certificate.share_title', ['{name}' => $certificate->user_name, '{course}' => $certificate->course_title]);
 
-        return [$this->svg($design, $words, $label), $this->design->fingerprint($design, $words)];
+        $version = $this->design->fingerprint($design, $words);
+
+        return [$this->cached($certificate->code, "$version.svg", fn () => $this->svg($design, $words, $label)), $version];
     }
 
     /**

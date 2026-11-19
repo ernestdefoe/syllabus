@@ -52,8 +52,9 @@ class Fonts
         return dirname(__DIR__, 2).'/resources/fonts/'.$name.'.ttf';
     }
 
+    /** The woff2 file for an allow-listed name, on the syllabus-fonts disk, or null. */
     public static function webFile(string $name): ?string
     {
-        return in_array($name, self::FILES, true) ? dirname(__DIR__, 2).'/resources/fonts/web/'.$name.'.woff2' : null;
+        return in_array($name, self::FILES, true) ? $name.'.woff2' : null;
     }
 }

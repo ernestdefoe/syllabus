@@ -39,7 +39,9 @@
         "ernestdefoe/brainstorm": "Quiz lessons: embed a Brainstorm quiz in a course and make passing it unlock the next lesson.",
         "fof/badges": "Award a badge when a member completes a course.",
         "flarum/tags": "Put each lesson's discussion in a tag of your choice.",
-        "ernestdefoe/kiosk": "Sell a course: members who buy a Kiosk product get into it."
+        "ernestdefoe/kiosk": "Sell a course: members who buy a Kiosk product get into it.",
+        "fof/forum-widgets-core": "Show the Courses widget in FoF Forum Widgets.",
+        "ernestdefoe/bespoke": "Show the Courses widget in Bespoke's widget areas."
     },
     "autoload": {
         "psr-4": {
@@ -64,7 +66,9 @@
                 "ernestdefoe/brainstorm",
                 "fof/badges",
                 "flarum/tags",
-                "ernestdefoe/kiosk"
+                "ernestdefoe/kiosk",
+                "fof/forum-widgets-core",
+                "ernestdefoe/bespoke"
             ]
         }
     },

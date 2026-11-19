@@ -35,6 +35,7 @@ class Uploads
     public const COVER_MAX_BYTES = 5 * 1024 * 1024;
     public const COVER_WIDTH = 1600;
     public const VIDEO_TYPES = ['video/mp4' => 'mp4', 'video/webm' => 'webm', 'video/ogg' => 'ogv'];
+    private const EMPTIED_MB = ['max_file_mb' => 10, 'max_video_mb' => 200];
     public const DEFAULT_FILE_TYPES = 'pdf,txt,md,zip,png,jpg,jpeg,gif,webp,doc,docx,odt,rtf,ppt,pptx,odp,xls,xlsx,ods,csv';
 
     /** Never accepted, whatever the extension says: these could run in a browser. */
@@ -96,7 +97,7 @@ class Uploads
     /** A lesson video: MP4, WebM or Ogg only, up to the admin's cap. */
     public function storeVideo(UploadedFileInterface $file, Lesson $lesson, int $userId): Upload
     {
-        $max = $this->mb('max_video_mb', 200);
+        $max = $this->mb('max_video_mb');
         if ($max <= 0) {
             $this->fail('video', 'video_off');
         }
@@ -113,7 +114,7 @@ class Uploads
     /** An assignment file: an allow-listed extension, up to the admin's cap, never anything a browser would run. */
     public function storeSubmissionFile(UploadedFileInterface $file, Submission $submission): Upload
     {
-        $tmp = $this->accept($file, 'files', $this->mb('max_file_mb', 10) * 1024 * 1024);
+        $tmp = $this->accept($file, 'files', $this->mb('max_file_mb') * 1024 * 1024);
 
         $name = $this->cleanName((string) $file->getClientFilename());
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
@@ -141,11 +142,12 @@ class Uploads
         return array_values(array_diff(array_unique($types), ['html', 'htm', 'xhtml', 'svg', 'svgz', 'xml', 'js', 'mjs', 'php', 'phtml', 'phar', 'exe', 'sh', 'bat', 'cmd', 'com', 'msi', 'jar', 'hta']));
     }
 
-    public function mb(string $key, int $default): int
+    /** A size limit in MB. The defaults are registered in extend.php; these only stand in for a field an admin emptied. */
+    public function mb(string $key): int
     {
         $value = $this->settings->get('ernestdefoe-syllabus.'.$key);
 
-        return max(0, min(4096, is_numeric($value) ? (int) $value : $default));
+        return max(0, min(4096, is_numeric($value) ? (int) $value : self::EMPTIED_MB[$key]));
     }
 
     public function delete(Upload $upload): void

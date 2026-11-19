@@ -62,7 +62,7 @@ class SubmitController implements RequestHandlerInterface
             $this->invalid('body', $previous === 'passed' ? 'already_passed' : 'already_waiting');
         }
 
-        $hourly = max(1, (int) ($this->settings->get('ernestdefoe-syllabus.submissions_per_hour') ?: 10));
+        $hourly = max(1, (int) $this->settings->get('ernestdefoe-syllabus.submissions_per_hour'));
         if (Submission::query()->where('user_id', $actor->id)->where('created_at', '>', Carbon::now()->subHour())->count() >= $hourly) {
             $this->invalid('body', 'slow_down');
         }

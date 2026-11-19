@@ -133,33 +133,7 @@ class Shaper
      */
     public static function reorder(array $codes, bool $rtl): array
     {
-        $base = $rtl ? 'R' : 'L';
-        $dirs = array_map(fn ($c) => self::direction($c), $codes);
-        $n = count($codes);
-
-        // Neutrals between two runs of the same direction take it; otherwise the line's direction.
-        // Marks take their letter's direction.
-        for ($i = 0; $i < $n; $i++) {
-            if ($dirs[$i] === 'M') {
-                $dirs[$i] = $i > 0 ? $dirs[$i - 1] : $base;
-            }
-        }
-        for ($i = 0; $i < $n; $i++) {
-            if ($dirs[$i] !== 'N') {
-                continue;
-            }
-            $j = $i;
-            while ($j < $n && $dirs[$j] === 'N') {
-                $j++;
-            }
-            $before = $i > 0 ? $dirs[$i - 1] : $base;
-            $after = $j < $n ? $dirs[$j] : $base;
-            $dir = $before === $after ? $before : $base;
-            for ($k = $i; $k < $j; $k++) {
-                $dirs[$k] = $dir;
-            }
-            $i = $j - 1;
-        }
+        $dirs = self::directions($codes, $rtl ? 'R' : 'L');
 
         // Runs.
         $runs = [];
@@ -197,6 +171,45 @@ class Shaper
         }
 
         return $out;
+    }
+
+    /**
+     * Each character's direction: marks take their letter's, and neutrals
+     * between two runs of the same direction take it, otherwise the line's.
+     *
+     * @param list<int> $codes
+     * @return list<string>
+     */
+    private static function directions(array $codes, string $base): array
+    {
+        $dirs = array_map(fn ($c) => self::direction($c), $codes);
+        $n = count($codes);
+
+        // Neutrals between two runs of the same direction take it; otherwise the line's direction.
+        // Marks take their letter's direction.
+        for ($i = 0; $i < $n; $i++) {
+            if ($dirs[$i] === 'M') {
+                $dirs[$i] = $i > 0 ? $dirs[$i - 1] : $base;
+            }
+        }
+        for ($i = 0; $i < $n; $i++) {
+            if ($dirs[$i] !== 'N') {
+                continue;
+            }
+            $j = $i;
+            while ($j < $n && $dirs[$j] === 'N') {
+                $j++;
+            }
+            $before = $i > 0 ? $dirs[$i - 1] : $base;
+            $after = $j < $n ? $dirs[$j] : $base;
+            $dir = $before === $after ? $before : $base;
+            for ($k = $i; $k < $j; $k++) {
+                $dirs[$k] = $dir;
+            }
+            $i = $j - 1;
+        }
+
+        return $dirs;
     }
 
     /** R (Hebrew, Arabic script), L (other letters and digits), M (combining mark) or N (spaces, punctuation). */

@@ -52,7 +52,11 @@ export default class CertificateDesigner extends Component<CertificateDesignerAt
       this.loading = false;
       m.redraw();
     };
-    loadSvg(designPreviewUrl(this.attrs.design, this.attrs.courseId)).then(done, () => done(this.svg));
+    loadSvg(designPreviewUrl(this.attrs.design, this.attrs.courseId)).then(done, () => {
+      // Keep the last preview, and say this one couldn't be drawn.
+      app.alerts.show({ type: 'error' }, t('preview_failed'));
+      done(this.svg);
+    });
   }
 
   /** Redraws the preview: at once for a click, after a pause for typing. */

@@ -10,17 +10,12 @@
  * as a dated fact, and issues a certificate with a public verification code.
  */
 
-use Ernestdefoe\Syllabus\Access;
 use Ernestdefoe\Syllabus\Api;
-use Ernestdefoe\Syllabus\Brainstorm;
 use Ernestdefoe\Syllabus\Content\CertificateDocument;
 use Ernestdefoe\Syllabus\Content\CourseDocument;
 use Ernestdefoe\Syllabus\Listener\CompleteQuizLessons;
 use Ernestdefoe\Syllabus\Notification;
-use Ernestdefoe\Syllabus\Uploads;
-use Flarum\Api\Context;
 use Flarum\Api\Resource\ForumResource;
-use Flarum\Api\Schema;
 use Flarum\Extend;
 use Flarum\Foundation\Paths;
 
@@ -107,7 +102,9 @@ return [
         ->disk('syllabus-files', fn (Paths $paths) => ['root' => $paths->storage.'/syllabus'])
         // Certificate logos, backgrounds and signatures, and drawn
         // certificates: private too, only ever drawn into a certificate.
-        ->disk('syllabus-certificates', fn (Paths $paths) => ['root' => $paths->storage.'/syllabus-certificates']),
+        ->disk('syllabus-certificates', fn (Paths $paths) => ['root' => $paths->storage.'/syllabus-certificates'])
+        // The certificate webfonts that ship with Syllabus; only ever read.
+        ->disk('syllabus-fonts', fn () => ['root' => __DIR__.'/resources/fonts/web']),
 
     new Extend\ApiResource(Api\Resource\CourseResource::class),
 
@@ -121,31 +118,16 @@ return [
         ->default('ernestdefoe-syllabus.show_nav', true)
         ->default('ernestdefoe-syllabus.max_file_mb', 10)
         ->default('ernestdefoe-syllabus.max_video_mb', 200)
-        ->default('ernestdefoe-syllabus.file_types', Uploads::DEFAULT_FILE_TYPES)
+        // A literal, not Uploads::DEFAULT_FILE_TYPES: extend.php must not autoload our classes while it loads.
+        ->default('ernestdefoe-syllabus.file_types', 'pdf,txt,md,zip,png,jpg,jpeg,gif,webp,doc,docx,odt,rtf,ppt,pptx,odp,xls,xlsx,ods,csv')
         ->default('ernestdefoe-syllabus.submissions_per_hour', 10)
         ->serializeToForum('syllabusShowNav', 'ernestdefoe-syllabus.show_nav', 'boolval'),
 
     (new Extend\User())
         ->registerPreference('syllabusShowCourses', 'boolval', true),
 
-    // Permissions the actor's groups were already loaded for, and settings
-    // already in memory: no query.
     (new Extend\ApiResource(ForumResource::class))
-        ->fields(fn () => [
-            Schema\Boolean::make('canViewCourses')
-                ->get(fn ($forum, Context $context) => $context->getActor()->hasPermission('syllabus.view')),
-            Schema\Boolean::make('canCreateCourses')
-                ->get(fn ($forum, Context $context) => Access::canCreate($context->getActor())),
-            Schema\Boolean::make('syllabusQuizzes')
-                ->get(fn () => resolve(Brainstorm::class)->enabled())
-                ->visible(fn ($forum, Context $context) => Access::canCreate($context->getActor())),
-            Schema\Str::make('syllabusFileTypes')
-                ->get(fn () => implode(',', resolve(Uploads::class)->fileTypes()))
-                ->visible(fn ($forum, Context $context) => ! $context->getActor()->isGuest()),
-            Schema\Integer::make('syllabusMaxFileMb')
-                ->get(fn () => resolve(Uploads::class)->mb('max_file_mb', 10))
-                ->visible(fn ($forum, Context $context) => ! $context->getActor()->isGuest()),
-        ]),
+        ->fields(Api\ForumFields::class),
 
     (new Extend\Conditional())
         // Sell courses through Kiosk; see Kiosk\CourseUnlock.
