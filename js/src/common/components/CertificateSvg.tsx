@@ -72,11 +72,16 @@ export async function downloadSvg(svg: string, filename: string): Promise<void> 
     svg = svg.split(url).join(data);
   }
 
+  // Inside an SVG drawn as an image, fonts keep loading after decode(), and "block" would leave text
+  // invisible until they do: swap, start them with a first draw, and give them a moment.
+  svg = svg.replace(/font-display:block/g, 'font-display:swap');
   const image = new Image();
   const src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
   try {
     image.src = src;
     await image.decode();
+    document.createElement('canvas').getContext('2d')!.drawImage(image, 0, 0, 1, 1);
+    await new Promise((resolve) => setTimeout(resolve, 800));
     const canvas = document.createElement('canvas');
     canvas.width = 2400;
     canvas.height = 1697;
