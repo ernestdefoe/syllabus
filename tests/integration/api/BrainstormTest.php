@@ -16,26 +16,28 @@ class BrainstormTest extends SyllabusTestCase
     /** A published one-question Brainstorm quiz by $author. */
     private function quiz(int $author = 1, string $title = 'Bread quiz'): int
     {
-        [$status, $body, $raw] = $this->json('POST', '/api/quizzes', $author, ['data' => [
+        // Brainstorm 1.2+ speaks JSON:API.
+        [$status, $body, $raw] = $this->json('POST', '/api/quizzes', $author, ['data' => ['type' => 'quizzes', 'attributes' => [
             'title' => $title,
             'status' => 'published',
             'passMark' => 100,
             'questions' => [['type' => 'boolean', 'body' => 'Bread needs flour.', 'options' => [['id' => 'true', 'correct' => true]]]],
-        ]]);
+        ]]]);
         $this->assertSame(201, $status, $raw);
 
-        return $body['data']['id'];
+        return (int) $body['data']['id'];
     }
 
     private function take(int $quizId, string $answer, int $actor = 2): bool
     {
-        [, $paper, $raw] = $this->json('POST', "/api/quizzes/$quizId/attempts", $actor);
+        [, $paper, $raw] = $this->json('POST', '/api/quiz-attempts', $actor, ['data' => ['type' => 'quiz-attempts', 'attributes' => ['quizId' => $quizId]]]);
         $this->assertArrayHasKey('data', $paper, $raw);
-        $question = (string) $paper['data']['questions'][0]['id'];
-        [$status, $result, $raw] = $this->json('POST', '/api/quiz-attempts/'.$paper['data']['id'].'/submit', $actor, ['data' => ['answers' => [$question => $answer]]]);
+        $id = $paper['data']['id'];
+        $question = (string) $paper['data']['attributes']['questions'][0]['id'];
+        [$status, $result, $raw] = $this->json('PATCH', "/api/quiz-attempts/$id", $actor, ['data' => ['type' => 'quiz-attempts', 'id' => $id, 'attributes' => ['answers' => [$question => $answer], 'submit' => true]]]);
         $this->assertSame(200, $status, $raw);
 
-        return $result['data']['passed'];
+        return $result['data']['attributes']['passed'];
     }
 
     #[Test]
