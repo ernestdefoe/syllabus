@@ -185,17 +185,19 @@ class CourseSaver
      */
     private function skills(mixed $value): ?array
     {
-        $items = is_array($value) ? $value : explode(',', (string) $value);
+        $items = is_array($value) ? $value : explode(',', mb_substr((string) $value, 0, 5000));
         $skills = [];
         foreach ($items as $item) {
             $name = trim(mb_substr((string) preg_replace('/[\x00-\x1F\x7F]+/u', ' ', is_scalar($item) ? (string) $item : ''), 0, self::SKILL_MAX));
-            if ($name !== '' && ! in_array(mb_strtolower($name), array_map('mb_strtolower', $skills), true)) {
-                $skills[] = $name;
+            // Keyed by the lowercase name: the first spelling wins, repeats are dropped.
+            if ($name !== '') {
+                $skills[mb_strtolower($name)] ??= $name;
+            }
+            if (count($skills) > self::SKILLS_MAX) {
+                $this->fail('skills', 'too_many_skills', ['{max}' => (string) self::SKILLS_MAX]);
             }
         }
-        if (count($skills) > self::SKILLS_MAX) {
-            $this->fail('skills', 'too_many_skills', ['{max}' => (string) self::SKILLS_MAX]);
-        }
+        $skills = array_values($skills);
 
         return $skills ?: null;
     }

@@ -13,6 +13,8 @@ Teach inside your community. Build a course out of text, video, assignment and q
 - **A drag-and-drop outline.** Group lessons into sections and drag both into order. With the keyboard, focus a handle and use the arrow keys.
 - **Enrollment and progress.** Members enroll with one click and mark lessons complete as they go. You can make lessons unlock in order, and let anyone preview the first few. "My courses" shows progress bars and a "Continue" button that goes straight back to the lesson they were on.
 - **A discussion for every lesson.** Start one automatically when the lesson is published, or link one that already exists. Students see an "Ask about this lesson" box that opens it.
+- **Skills.** List the skills a course teaches. They show on the course page as "Skills you'll earn", and every certificate keeps the skills it was issued with.
+- **For other extensions.** Stable events for enrollments, completions and certificates, and a read API for what a member earned (see [For extension developers](#for-extension-developers)).
 - **Certificates you design.** Finishing a course issues a certificate with the member's name, the course and the date. Choose one of four templates (Classic, Modern, Minimal, Academic), upload a logo, a background and the signer's handwritten signature, and add the signer's name and title. Set a design for the whole forum, and let each course change any part of it, with a live preview as you go. Members can print it, save it as a PDF or download it as an image, and every certificate has a public verification link that previews the certificate when shared.
 - **An instructor panel on the forum.** Instructors manage their own courses, review assignments, see each student's progress and, with Brainstorm, quiz results — without any admin access. They can add co-instructors.
 - **Paid and members-only courses** through groups, or sold directly with Kiosk (see below).
@@ -119,6 +121,56 @@ In the admin panel, under Syllabus:
 - Lesson videos and assignment files are stored outside your public folder and are only ever sent to people allowed to see them: a video to those who can open its lesson, an assignment file to the student who submitted it and the course's instructors. They are always sent as downloads. Web pages, SVG images, scripts and programs are refused whatever the file name says.
 - YouTube videos play from `youtube-nocookie.com`, Vimeo videos with "do not track".
 - A certificate's verification link contains a long random code. It shows the member's name, the course and the date — nothing else.
+
+## For extension developers
+
+Syllabus has a small public contract, so other extensions can react to learning and show what members earned without Syllabus depending on them. The class names, properties and response shape below are stable: they change only in a major version.
+
+### Events
+
+Listen with `Extend\Event` inside `Extend\Conditional()->whenExtensionEnabled('ernestdefoe-syllabus', …)`. They fire only for confirmed facts, never for a page visit or partial progress.
+
+| Event | Properties | When |
+| --- | --- | --- |
+| `Ernestdefoe\Syllabus\Event\CourseEnrolled` | `User $user`, `Course $course` | An enrollment is created: the member enrolled, or bought the course through Kiosk. Once per enrollment; a member who leaves and enrolls again is a new enrollment. |
+| `Ernestdefoe\Syllabus\Event\CourseCompleted` | `User $user`, `Course $course` | The member completed every counted lesson. Once per member and course, ever. |
+| `Ernestdefoe\Syllabus\Event\CertificateIssued` | `User $user`, `Course $course`, `Certificate $certificate` | Right after `CourseCompleted`. `$certificate->code` is the verification code, `$certificate->skills` the skills it was issued with. |
+
+Certificates and completions are never revoked, so there are no revocation events.
+
+```php
+(new Extend\Conditional())->whenExtensionEnabled('ernestdefoe-syllabus', fn () => [
+    (new Extend\Event())->listen(\Ernestdefoe\Syllabus\Event\CertificateIssued::class, AwardForCertificate::class),
+]),
+```
+
+### What a member earned
+
+`GET /api/syllabus/users/{id}/achievements`, or from PHP, `resolve(\Ernestdefoe\Syllabus\Achievements::class)->forMember($member, $actor)`:
+
+```json
+{
+  "data": {
+    "certificates": [
+      {
+        "code": "3f9a…",
+        "courseTitle": "Photogrammetry basics",
+        "course": { "id": 4, "slug": "photogrammetry-basics" },
+        "issuer": "Your forum",
+        "issuedAt": "2026-11-23T14:05:00+00:00",
+        "verifyUrl": "https://your.forum/certificates/3f9a…",
+        "skills": ["Photogrammetry", "RealityCapture"]
+      }
+    ],
+    "skills": [
+      { "name": "Photogrammetry", "courseTitle": "Photogrammetry basics", "certificateCode": "3f9a…" }
+    ]
+  },
+  "meta": { "hidden": false }
+}
+```
+
+Certificates are newest first. A skill appears once per certificate that earned it. `course` is `null` when the viewer can't see the course (certificates stay valid either way). Privacy matches the profile's Courses tab: the member and course managers always see it; anyone else only when the member shows their courses and may view courses. Otherwise `data` is `null` and `meta.hidden` is `true` (from PHP, `forMember()` returns `null`).
 
 ## Troubleshooting
 

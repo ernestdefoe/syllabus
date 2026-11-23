@@ -142,6 +142,15 @@ class SkillsAndEventsTest extends SyllabusTestCase
             $this->assertSame($hidden, $body['data'] === null);
         }
 
+        // A course hidden from the viewer hides its certificate from them too (not from the owner or a manager).
+        $this->database()->table('users')->where('id', 2)->update(['preferences' => null]);
+        $this->json('PATCH', '/api/syllabus/courses/'.$course['id'], 1, ['data' => ['status' => 'draft']]);
+        foreach ([null => 0, 3 => 0, 2 => 1, 6 => 1, 1 => 1] as $actor => $count) {
+            [, $body] = $this->json('GET', '/api/syllabus/users/2/achievements', $actor ?: null);
+            $this->assertCount($count, $body['data']['certificates'], 'actor '.$actor);
+            $this->assertCount($count, $body['data']['skills'], 'actor '.$actor);
+        }
+
         [$status] = $this->json('GET', '/api/syllabus/users/999/achievements', 1);
         $this->assertSame(404, $status);
     }

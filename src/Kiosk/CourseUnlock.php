@@ -7,6 +7,7 @@ use Ernestdefoe\Syllabus\Course;
 use Ernestdefoe\Syllabus\Progress;
 use Flarum\Http\UrlGenerator;
 use Flarum\User\User;
+use Psr\Log\LoggerInterface;
 
 /**
  * Courses sold through Kiosk. Registered only while Kiosk is enabled (see
@@ -18,7 +19,7 @@ use Flarum\User\User;
  */
 class CourseUnlock implements UnlockType
 {
-    public function __construct(private Progress $progress, private UrlGenerator $url)
+    public function __construct(private Progress $progress, private UrlGenerator $url, private LoggerInterface $log)
     {
     }
 
@@ -56,9 +57,13 @@ class CourseUnlock implements UnlockType
     public function grant(User $user, int $targetId): void
     {
         $course = Course::query()->find($targetId);
-        if ($course) {
-            $this->progress->enrol($course, $user);
+        if (! $course) {
+            // The course was deleted after the product was set up: nothing to grant.
+            $this->log->warning("Syllabus: a Kiosk purchase granted course $targetId, which no longer exists.");
+
+            return;
         }
+        $this->progress->enrol($course, $user);
     }
 
     public function revoke(User $user, int $targetId): void
