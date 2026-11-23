@@ -70,6 +70,18 @@ export default class CoursePage extends Page {
     return (
       <PageStructure className="SyllabusCoursePage" hero={() => this.hero(course)} sidebar={() => this.sidebar(course)}>
         {course.descriptionHtml ? <div className="SyllabusProse Post-body">{m.trust(course.descriptionHtml)}</div> : null}
+        {course.skills.length ? (
+          <section className="SyllabusSkills" aria-labelledby="syl-skills">
+            <h3 className="SyllabusHeading" id="syl-skills">
+              {t('course.skills')}
+            </h3>
+            <ul className="SyllabusSkills-list">
+              {course.skills.map((skill) => (
+                <li className="SyllabusSkill">{skill}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
         <h3 className="SyllabusHeading">{t('course.outline')}</h3>
         {this.offer(course)}
         {course.outline.length ? <OutlineList course={course} items={course.outline} /> : <p className="SyllabusEmpty">{t('course.no_lessons')}</p>}

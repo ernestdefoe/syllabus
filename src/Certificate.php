@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $course_title
  * @property string $user_name
  * @property Carbon $issued_at
+ * @property list<string>|null $skills the course's skills on the day it was issued
  * @property Course|null $course
  * @property User|null $user
  */
@@ -25,6 +26,7 @@ class Certificate extends AbstractModel
     public $timestamps = false;
 
     protected $casts = [
+        'skills' => 'array',
         'course_id' => 'integer',
         'user_id' => 'integer',
         'issued_at' => 'datetime',

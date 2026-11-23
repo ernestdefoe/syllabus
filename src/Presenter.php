@@ -121,6 +121,7 @@ class Presenter
             'canReview' => $state->editor,
             'outline' => $this->outlineItems($state),
             'certificateCode' => $certificate,
+            'skills' => $course->skills ?? [],
             'nextLesson' => $next ? $this->ref($next) : null,
         ];
     }
@@ -186,6 +187,7 @@ class Presenter
             'badgeId' => $course->badge_id,
             'instructors' => $course->instructors->map(fn (User $u) => $this->person($u))->values()->all(),
             'certificate' => $this->design->editable($this->design->course($course)),
+            'skills' => $course->skills ?? [],
         ];
     }
 

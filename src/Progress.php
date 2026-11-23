@@ -3,18 +3,25 @@
 namespace Ernestdefoe\Syllabus;
 
 use Carbon\Carbon;
+use Ernestdefoe\Syllabus\Event\CertificateIssued;
+use Ernestdefoe\Syllabus\Event\CourseCompleted;
+use Ernestdefoe\Syllabus\Event\CourseEnrolled;
 use Ernestdefoe\Syllabus\Notification\CourseCompletedBlueprint;
 use Flarum\Extension\ExtensionManager;
 use Flarum\Notification\NotificationSyncer;
 use Flarum\User\User;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\ConnectionInterface;
 
 /**
- * Completing lessons and courses. A course is completed — once, as a dated
- * fact — when an enrolled member has completed every countable lesson; that
- * moment issues the certificate, sends the notification and awards the
- * course's badge.
+ * Enrolling, and completing lessons and courses. A course is completed —
+ * once, as a dated fact — when an enrolled member has completed every
+ * countable lesson; that moment issues the certificate, sends the
+ * notification and awards the course's badge.
+ *
+ * The public events (Event\CourseEnrolled, CourseCompleted, CertificateIssued)
+ * are fired here and only here, for confirmed facts, never for a visit.
  */
 class Progress
 {
@@ -23,8 +30,27 @@ class Progress
         private Outline $outline,
         private NotificationSyncer $notifications,
         private ExtensionManager $extensions,
-        private Container $container
+        private Container $container,
+        private Dispatcher $events
     ) {
+    }
+
+    /** Enroll a member; true if this created the enrollment (and fired CourseEnrolled). */
+    public function enrol(Course $course, User $user): bool
+    {
+        $added = (bool) $this->db->table('syllabus_enrolments')->insertOrIgnore([
+            'course_id' => $course->id,
+            'user_id' => $user->id,
+            'created_at' => Carbon::now(),
+            'last_seen_at' => Carbon::now(),
+        ]);
+
+        if ($added) {
+            $course->newQuery()->whereKey($course->id)->increment('enrolment_count');
+            $this->events->dispatch(new CourseEnrolled($user, $course));
+        }
+
+        return $added;
     }
 
     public function isComplete(Lesson $lesson, int $userId): bool
@@ -79,19 +105,27 @@ class Progress
         }
 
         $certificate = Certificate::query()->where('course_id', $course->id)->where('user_id', $user->id)->first();
-        if (! $certificate) {
+        $first = ! $certificate;
+        if ($first) {
             $certificate = new Certificate();
             $certificate->course_id = $course->id;
             $certificate->user_id = $user->id;
             $certificate->code = Certificate::newCode();
             $certificate->course_title = $course->title;
             $certificate->user_name = $user->display_name;
+            $certificate->skills = $course->skills ?: null;
             $certificate->issued_at = Carbon::now();
             $certificate->save();
         }
 
         $this->notifications->sync(new CourseCompletedBlueprint($course, $certificate), [$user]);
         $this->awardBadge($course, $user);
+
+        // Once per member and course, ever: completing it again after re-enrolling isn't news.
+        if ($first) {
+            $this->events->dispatch(new CourseCompleted($user, $course));
+            $this->events->dispatch(new CertificateIssued($user, $course, $certificate));
+        }
 
         return $certificate;
     }

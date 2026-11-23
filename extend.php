@@ -94,7 +94,8 @@ return [
         ->get('/syllabus/courses/{id:[0-9]+}/certificate/preview', 'syllabus.courses.certificate.preview', Api\CertificatePreviewController::class)
         ->post('/syllabus/courses/{id:[0-9]+}/certificate/{kind:logo|background|signature}', 'syllabus.courses.certificate.image', Api\CertificateDesignController::class)
         ->delete('/syllabus/courses/{id:[0-9]+}/certificate/{kind:logo|background|signature}', 'syllabus.courses.certificate.image.delete', Api\CertificateDesignController::class)
-        ->get('/syllabus/users/{id:[0-9]+}/courses', 'syllabus.users.courses', Api\UserCoursesController::class),
+        ->get('/syllabus/users/{id:[0-9]+}/courses', 'syllabus.users.courses', Api\UserCoursesController::class)
+        ->get('/syllabus/users/{id:[0-9]+}/achievements', 'syllabus.users.achievements', Api\AchievementsController::class),
 
     // Lesson videos and assignment files: outside the public folder, served
     // only through FileController.

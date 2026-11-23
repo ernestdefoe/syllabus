@@ -38,6 +38,7 @@ const blank = (): EditableCourse => ({
   badgeId: null,
   instructors: [],
   certificate: { template: '', signerName: '', signerTitle: '', hasLogo: false, hasBackground: false, hasSignature: false },
+  skills: [],
 });
 
 type Row = OutlineItem & { key: string };
@@ -56,6 +57,8 @@ export default class CourseEditorPage extends Page {
   search = '';
   found: Person[] = [];
   searchTimer = 0;
+  /** The skills field as typed; split into the list on save. */
+  skillsText: string | null = null;
 
   oninit(vnode: Mithril.Vnode) {
     super.oninit(vnode);
@@ -197,6 +200,20 @@ export default class CourseEditorPage extends Page {
             </div>
             <div className="helpText">{t(this.course ? 'editor.cover_help' : 'editor.cover_help_new')}</div>
           </fieldset>
+
+          {Field(
+            t('editor.skills'),
+            <input
+              id="syl-skills"
+              className="FormControl"
+              maxlength={1500}
+              placeholder={extractText(t('editor.skills_placeholder'))}
+              value={this.skillsText ?? f.skills.join(', ')}
+              oninput={(e: InputEvent) => (this.skillsText = (e.target as HTMLInputElement).value)}
+            />,
+            t('editor.skills_help'),
+            'syl-skills'
+          )}
 
           <div className="SyllabusEditor-grid">
             {meta.categories.length
@@ -515,6 +532,11 @@ export default class CourseEditorPage extends Page {
     this.saving = true;
     const f = this.form;
     const data: any = { ...f, instructorIds: f.instructors.map((p) => p.id) };
+    if (this.skillsText !== null)
+      data.skills = this.skillsText
+        .split(',')
+        .map((skill) => skill.trim())
+        .filter(Boolean);
     delete data.instructors;
     delete data.hasUploadedCover;
     if (f.hasUploadedCover) delete data.coverUrl;
@@ -527,6 +549,7 @@ export default class CourseEditorPage extends Page {
           m.route.set(app.route('syllabus.edit', { id: course.id + '-' + course.slug }));
           return;
         }
+        this.skillsText = null;
         this.take(course);
       },
       (error: any) => {

@@ -2,14 +2,12 @@
 
 namespace Ernestdefoe\Syllabus\Api;
 
-use Carbon\Carbon;
 use Ernestdefoe\Syllabus\Enrolment;
 use Ernestdefoe\Syllabus\Outline;
 use Ernestdefoe\Syllabus\Presenter;
 use Ernestdefoe\Syllabus\Progress;
 use Flarum\Http\RequestUtil;
 use Flarum\User\Exception\PermissionDeniedException;
-use Illuminate\Database\ConnectionInterface;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,7 +22,7 @@ class EnrolmentController implements RequestHandlerInterface
 {
     use Concerns;
 
-    public function __construct(private Outline $outline, private Presenter $presenter, private Progress $progress, private ConnectionInterface $db)
+    public function __construct(private Outline $outline, private Presenter $presenter, private Progress $progress)
     {
     }
 
@@ -47,15 +45,7 @@ class EnrolmentController implements RequestHandlerInterface
                 throw new PermissionDeniedException();
             }
 
-            $added = $this->db->table('syllabus_enrolments')->insertOrIgnore([
-                'course_id' => $course->id,
-                'user_id' => $actor->id,
-                'created_at' => Carbon::now(),
-                'last_seen_at' => Carbon::now(),
-            ]);
-            if ($added) {
-                $course->newQuery()->whereKey($course->id)->increment('enrolment_count');
-            }
+            $this->progress->enrol($course, $actor);
 
             // Lessons completed before (an earlier enrolment) may already finish it.
             $this->progress->checkCourse($course, $actor);

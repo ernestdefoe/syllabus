@@ -34,6 +34,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $badge_id
  * @property int $enrolment_count
  * @property string|null $certificate_design JSON, see Certificates\Design
+ * @property list<string>|null $skills
  * @property Carbon|null $published_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -53,6 +54,7 @@ class Course extends AbstractModel
     public $timestamps = true;
 
     protected $casts = [
+        'skills' => 'array',
         'category_id' => 'integer',
         'user_id' => 'integer',
         'estimated_minutes' => 'integer',

@@ -90,6 +90,7 @@ export interface EditableCourse {
   badgeId: number | null;
   instructors: Person[];
   certificate?: CertificateDesign;
+  skills: string[];
 }
 
 /** A certificate design as the editor shows it: empty text means "use the default". */
@@ -116,6 +117,7 @@ export interface Course extends CourseCard {
   canReview: boolean;
   outline: OutlineItem[];
   certificateCode: string | null;
+  skills: string[];
   nextLesson: Ref | null;
   edit?: EditableCourse;
 }

@@ -2,12 +2,11 @@
 
 namespace Ernestdefoe\Syllabus\Kiosk;
 
-use Carbon\Carbon;
 use Ernestdefoe\Kiosk\Unlock\UnlockType;
 use Ernestdefoe\Syllabus\Course;
+use Ernestdefoe\Syllabus\Progress;
 use Flarum\Http\UrlGenerator;
 use Flarum\User\User;
-use Illuminate\Database\ConnectionInterface;
 
 /**
  * Courses sold through Kiosk. Registered only while Kiosk is enabled (see
@@ -19,7 +18,7 @@ use Illuminate\Database\ConnectionInterface;
  */
 class CourseUnlock implements UnlockType
 {
-    public function __construct(private ConnectionInterface $db, private UrlGenerator $url)
+    public function __construct(private Progress $progress, private UrlGenerator $url)
     {
     }
 
@@ -56,15 +55,9 @@ class CourseUnlock implements UnlockType
 
     public function grant(User $user, int $targetId): void
     {
-        $added = $this->db->table('syllabus_enrolments')->insertOrIgnore([
-            'course_id' => $targetId,
-            'user_id' => $user->id,
-            'created_at' => Carbon::now(),
-            'last_seen_at' => Carbon::now(),
-        ]);
-
-        if ($added) {
-            Course::query()->whereKey($targetId)->increment('enrolment_count');
+        $course = Course::query()->find($targetId);
+        if ($course) {
+            $this->progress->enrol($course, $user);
         }
     }
 

@@ -14,6 +14,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 /** Creating and updating a course from the editor's fields. Only the fields sent are changed. */
 class CourseSaver
 {
+    public const SKILLS_MAX = 20;
+    public const SKILL_MAX = 60;
+
     public function __construct(
         private RichText $rich,
         private ConnectionInterface $db,
@@ -143,6 +146,10 @@ class CourseSaver
             $instructorIds = $users->pluck('id')->map(fn ($id) => (int) $id)->all();
         }
 
+        if ($has('skills')) {
+            $course->skills = $this->skills($data['skills']);
+        }
+
         if ($has('certificate') && is_array($data['certificate'])) {
             $stored = array_merge($this->design->course($course), $this->design->text($data['certificate']));
             $this->design->saveCourse($course, array_filter($stored, fn ($v) => $v !== ''));
@@ -168,6 +175,29 @@ class CourseSaver
         }
 
         return $saved;
+    }
+
+    /**
+     * The skills a course teaches: up to 20 short names, from a list or a
+     * comma-separated string, trimmed, without control characters or repeats.
+     *
+     * @return list<string>|null
+     */
+    private function skills(mixed $value): ?array
+    {
+        $items = is_array($value) ? $value : explode(',', (string) $value);
+        $skills = [];
+        foreach ($items as $item) {
+            $name = trim(mb_substr((string) preg_replace('/[\x00-\x1F\x7F]+/u', ' ', is_scalar($item) ? (string) $item : ''), 0, self::SKILL_MAX));
+            if ($name !== '' && ! in_array(mb_strtolower($name), array_map('mb_strtolower', $skills), true)) {
+                $skills[] = $name;
+            }
+        }
+        if (count($skills) > self::SKILLS_MAX) {
+            $this->fail('skills', 'too_many_skills', ['{max}' => (string) self::SKILLS_MAX]);
+        }
+
+        return $skills ?: null;
     }
 
     private function int(mixed $value, int $min, int $max): ?int
