@@ -144,6 +144,18 @@ Certificates and completions are never revoked, so there are no revocation event
 ]),
 ```
 
+### Enrollments and attachable courses
+
+Two reads for extensions that tie their own content to courses (Brainstorm uses them for course-only quizzes). Resolve each class from the container. Their signatures and results are stable.
+
+- **`Ernestdefoe\Syllabus\Enrolments::courseIdsFor(User $user): Illuminate\Database\Query\Builder`** returns a one-column query (`course_id`) of the courses the member is enrolled in, made to be used as a subquery, so your own visibility check stays one query. A guest matches no rows. It answers "is enrolled", not "may open": paid and group access stay the course's own rule.
+
+  ```php
+  $query->whereIn('syllabus_course_id', resolve(\Ernestdefoe\Syllabus\Enrolments::class)->courseIdsFor($actor));
+  ```
+
+- **`Ernestdefoe\Syllabus\Courses::attachableBy(User $user, int $limit = 50): array`** returns the published courses the user may attach something to, as `[['id' => 4, 'title' => '…'], …]`, ordered by title, at most `$limit` (1–100). These are the courses they teach and may edit (owner or co-instructor with "Create and teach courses"), or every published course for course managers and admins. Members and guests get `[]`.
+
 ### What a member earned
 
 `GET /api/syllabus/users/{id}/achievements`, or from PHP, `resolve(\Ernestdefoe\Syllabus\Achievements::class)->forMember($member, $actor)`:
